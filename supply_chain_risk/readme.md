@@ -64,3 +64,8 @@
 ### risk_words.py
 * 对提取出来的词语进行筛选
 
+### supplychain_words.py
+* 对提取出来的供应链相关词语进行筛选
+
+### measurement.py
+* 

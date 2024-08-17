@@ -1,23 +1,32 @@
 import jieba
 import pandas as pd
 import os
+# 定义供应链和风险相关的关键词列表
 
 def load_unique_words(filename):
     with open(filename, 'r', encoding='utf-8') as file:
         words = {line.strip() for line in file}
     return words
 
-def group_and_merge_texts(merged_df, group_columns, text_column, output_column_name):
-    merged_df[output_column_name] = merged_df.groupby(group_columns)[text_column].transform(lambda x: ' '.join(x))
-    merged_df = merged_df.groupby(group_columns, as_index=False).first().reset_index(drop=True)
-    result_df = merged_df[group_columns + [output_column_name]]
-    return result_df
+def merge_excel_files(folder_path, file1, file2,columns_to_keep):
+    file1_path = os.path.join(folder_path, file1)
+    df1 = pd.read_excel(file1_path)
+    file2_path = os.path.join(folder_path, file2)
+    df2 = pd.read_excel(file2_path)
 
-def apply_cut_text(merged_df, text_column, user_dict_path, stopwords):
-    def cut_and_filter(text):
-        return ' '.join(cut_text_with_custom_dict(text, user_dict_path, stopwords))
-    merged_df['分词后的文本'] = merged_df[text_column].apply(cut_and_filter)
+    merged_df = pd.concat([df1, df2], ignore_index=True)
+    merged_df = merged_df[columns_to_keep]
     return merged_df
+
+def group_and_merge_texts(merged_df, group_columns, text_column, output_column_name):
+    grouped = merged_df.groupby(group_columns)
+    merged_df[output_column_name] = grouped.apply(merge_texts_by_year, text_column=text_column)
+    return merged_df
+
+def merge_texts_by_year(group, text_column):
+    full_text = ' '.join(group[text_column])
+    words = cut_text_with_custom_dict(full_text, user_dict_path, stopwords)
+    return ' '.join(words)
 
 def cut_text_with_custom_dict(text, user_dict_path, stopwords):
     jieba.load_userdict(user_dict_path)  # 加载自定义词典
@@ -27,7 +36,7 @@ def cut_text_with_custom_dict(text, user_dict_path, stopwords):
     return filtered_words
 
 # 计算供应链风险指标的函数
-# def calculate_supply_chain_risk(filtered_words, supply_chain_keywords, risk_keywords):
+def calculate_supply_chain_risk(filtered_words, supply_chain_keywords, risk_keywords):
     total_risk_score = 0
     supply_chain_words_count = 0  
     
@@ -71,33 +80,29 @@ supply_chain_keywords = load_unique_words(supply_chain_file_path)
 risk_keywords = load_unique_words(risk_file_path)
 
 
-# merged_texts['Risk_Indicator'] = merged_texts.apply(lambda row: calculate_supply_chain_risk(row, supply_chain_risk_keywords))
-# output_file_path = 'supply_chain_risk_indicators.csv'
-# merged_texts.to_csv(output_file_path, index=False)
+merged_texts['Risk_Indicator'] = merged_texts.apply(lambda row: calculate_supply_chain_risk(row, supply_chain_risk_keywords))
+output_file_path = 'supply_chain_risk_indicators.csv'
+merged_texts.to_csv(output_file_path, index=False)
 
-# print(f"供应链风险指标已经计算完成，并保存到 {output_file_path}")
+print(f"供应链风险指标已经计算完成，并保存到 {output_file_path}")
+
+# 读取 Excel 文件
+excel_file_path = '/Users/chenyaxin/Desktop/供应链风险指标测度/业绩说明会数据/原始数据/业绩说明会问答文本分析/业绩说明会问答文本分析_1.xlsx'
+df = pd.read_excel(excel_file_path)
 
 
-folder_path = '/Users/chenyaxin/Desktop/供应链风险指标测度/业绩说明会数据/test.csv'  # 替换为你的文件夹路径
-columns_to_keep = ['Scode', 'Year', 'Qcntet','Acntet']
-df=pd.read_csv(folder_path,usecols=columns_to_keep)
-df['合并后的问答内容'] = df['Qcntet'] + ' ' + df['Acntet']
-df_filtered = df[['Scode', 'Year', '合并后的问答内容']]
 
+# 示例使用
+folder_path = '/Users/chenyaxin/Desktop/供应链风险指标测度/原始数据/业绩说明会问答文本分析'  # 替换为你的文件夹路径
+file1 = '业绩说明会问答文本分析_1.xlsx'  # 替换为第一个Excel文件的名称
+file2 = '业绩说明会问答文本分析_2.xlsx'  # 替换为第二个Excel文件的名称
+columns_to_keep = ['Scode', 'Year', 'Qnumbr', 'Qcntet','Acntet']
+merged_df=merge_excel_files(folder_path, file1, file2, columns_to_keep)
+merged_df['合并后的问答内容'] = merged_df['Qcntet'] + ' ' + merged_df['Acntet']
 grouped_df = group_and_merge_texts(
-    merged_df=df_filtered,
+    merged_df=merged_df,
     group_columns=['Scode', 'Year'],
     text_column='合并后的问答内容',  # 使用新创建的列名
     output_column_name='Content'
 )
-merged_df = apply_cut_text(
-    merged_df=grouped_df,
-    text_column='Content',
-    user_dict_path=user_dict_path,
-    stopwords=stopwords
-)
-
-
-# import pdb
-# pdb.set_trace()
-# filtered_words=cut_text_with_custom_dict(merged_df, user_dict_path, stopwords)
+filtered_words=cut_text_with_custom_dict(merged_df, user_dict_path, stopwords)
