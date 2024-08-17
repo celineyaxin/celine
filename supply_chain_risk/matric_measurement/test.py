@@ -5,6 +5,7 @@ import pandas as pd
 supply_chain_keywords = {"供应链", "物流", "库存", "采购", "生产"}  # 根据需要添加更多关键词
 risk_keywords = {"风险", "不确定性", "问题", "中断", "故障", "危机"}  # 根据需要添加更多风险关键词
 
+
 def load_unique_words(filename):
     with open(filename, 'r', encoding='utf-8') as file:
         words = {line.strip() for line in file}
