@@ -2,7 +2,7 @@ from gensim.models import Word2Vec
 
 
 if __name__ == '__main__':
-    WORD2VEC_MODEL_DIR = './supplainword2vec.model'
+    WORD2VEC_MODEL_DIR = '/Users/chenyaxin/Desktop/供应链风险指标测度/业绩说明会数据/model/supplainword2vec.model'
 
     word2vec_model = Word2Vec.load(WORD2VEC_MODEL_DIR)
 
