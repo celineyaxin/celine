@@ -60,6 +60,7 @@
 * 人称代词
 * 敬语
 * 拟声词
+* 删除称呼
 
 ### risk_words.py
 * 对提取出来的词语进行筛选
@@ -67,5 +68,26 @@
 ### supplychain_words.py
 * 对提取出来的供应链相关词语进行筛选
 
+### random_sample.py
+* 对/Users/chenyaxin/Desktop/供应链风险指标测度/业绩说明会数据/merged_output.xlsx文件随机抽取2000条信息找一找可以剔除掉的词都有哪些，确认stopwords以及selfdictionary
+
+### duplicates_drop.py
+* 对整理出来的stopwords以及selfdictionary删除重复值（不然会增加运算负荷）
+
+### mergeQA.py
+* merge_excel_files：将业绩说明会的两个文件合并处理
+* remove_salutations/remove_specific_greetings：删除文本中名字、称呼
+* group_and_merge_texts：对业绩说明会中投资者和管理层的问答内容根据年份股票代码进行合并，得到年份的业绩说明会记录
+（在实际运行过程中因为文件太大，一个.py文件难以运行，我们分成两部分处理）
+
 ### measurement.py
-* 
+* apply_cut_text：筛选出合并的内容并进行分词处理
+* cut_text_with_custom_dict： 删除停用词，补充自用词进行分词
+* calculate_supply_chain_risk： 根据分词后的文本构造指标
+<!-- 这是一个备注 -->
+在运行的过程中由于文本数据很大，直接运算压力很大，所以我们使用分年份的方式对数据进行处理
+
+### writer.py
+* 将文件写入到一个excel文件
+
+
