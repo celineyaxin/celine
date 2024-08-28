@@ -1,8 +1,8 @@
 import os
 
 # 定义文件路径
-folder_path = '/Users/chenyaxin/Desktop/供应链风险指标测度/指标构造文件'  # 替换为您的文件夹路径
-stopwords_file_path = os.path.join(folder_path, 'stopwords.txt')
+folder_path = '/Users/chenyaxin/Desktop/供应链风险指标测度/业绩说明会数据'  # 替换为您的文件夹路径
+stopwords_file_path = os.path.join(folder_path, 'risk_words.txt')
 def clean_words(filename):
     with open(filename, 'r', encoding='utf-8') as file:
         words = set(line.strip() for line in file if line.strip())

@@ -64,9 +64,10 @@
 
 ### risk_words.py
 * 对提取出来的词语进行筛选
-
+* 系统性
 ### supplychain_words.py
 * 对提取出来的供应链相关词语进行筛选
+* 删除词汇：电池厂；家电企业；车企；车厂；跨国企业；汽车品牌；大宗商品；重要环节；环节；各个环节；主机厂；整车厂；零配件；汽车厂；垂直；贯通；延展；重构；服务体系；体系化；一条龙；全方位；本地化；比价；业务流程；体系；全球化；**客户**;打通
 
 ### random_sample.py
 * 对/Users/chenyaxin/Desktop/供应链风险指标测度/业绩说明会数据/merged_output.xlsx文件随机抽取2000条信息找一找可以剔除掉的词都有哪些，确认stopwords以及selfdictionary
@@ -84,10 +85,21 @@
 * apply_cut_text：筛选出合并的内容并进行分词处理
 * cut_text_with_custom_dict： 删除停用词，补充自用词进行分词
 * calculate_supply_chain_risk： 根据分词后的文本构造指标
+* calculate_total_risk_word_frequency：计算风险词汇的频率
+* calculate_supply_chain_word_frequency： 计算供应链词汇的频率
 <!-- 这是一个备注 -->
 在运行的过程中由于文本数据很大，直接运算压力很大，所以我们使用分年份的方式对数据进行处理
 
+<!-- 这是一个备注 -->
+如果需要单独计算：
+### compute_risk_score.py
+* 只计算风险得分
+
+### compute_supplychainrisk_score.py
+* 只计算供应链风险得分
+
 ### writer.py
 * 将文件写入到一个excel文件
+
 
 
