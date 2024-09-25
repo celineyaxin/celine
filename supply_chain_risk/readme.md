@@ -1,11 +1,16 @@
 # 大纲
 
 ## annual_data
-### filter_simple.py
-提取单个年报文件中的指定内容
 
 ### filter.py
-提取所有年报文件中的制定内容
+extract_content提取所有年报文件中的指定内容
+* 使用find方法在文本中查找每个标题的位置，找到标题后，检查标题后的第一个字符，确保它不是列表中的一个字符（如“。”或“一”），以避免错误地将相似的字符串识别为标题。
+* 记录找到的第一个有效标题的位置（minindex1）和标题（topic）
+* 将文本分割成标题前后两部分，然后尝试从标题后的部分提取内容。
+* 遍历nexttitle列表，找到第一个标题后的位置（minindex2）和标题（nexttopic），用于确定提取内容的结束位置。
+* 根据找到的结束标题位置，截取从标题开始到结束标题之前的内容。
+
+filter_simple.py：提取单个年报文件中的指定内容
 
 ### merge.py
 提取出的文件内容进行合并
@@ -46,12 +51,13 @@
 * 能够更好的查看epoch的迭代信息
 
 ### word2vec_test
-看训练的结果
+* 看训练的结果
 
 ### output
+* 输出相似的词语及其编码
 
 ## matric_measurement
-* 这一个文件夹主要针对已经获得的词汇和结果进行对应词语的指标构造
+这一个文件夹主要针对已经获得的词汇和结果进行对应词语的指标构造
 
 ### stopwords.txt
 需要删除的对象都有：
@@ -87,8 +93,18 @@
 * calculate_supply_chain_risk： 根据分词后的文本构造指标
 * calculate_total_risk_word_frequency：计算风险词汇的频率
 * calculate_supply_chain_word_frequency： 计算供应链词汇的频率
+
 <!-- 这是一个备注 -->
 在运行的过程中由于文本数据很大，直接运算压力很大，所以我们使用分年份的方式对数据进行处理
+
+### writer.py
+* 将文件写入到一个excel文件
+
+### similarity_final.py
+* 筛选出来的词语合并相似度，最终输出汇报的结果
+
+### count.py
+* 统计每个词语在数据中出现的频次
 
 <!-- 这是一个备注 -->
 如果需要单独计算：
@@ -98,8 +114,7 @@
 ### compute_supplychainrisk_score.py
 * 只计算供应链风险得分
 
-### writer.py
-* 将文件写入到一个excel文件
+
 
 
 

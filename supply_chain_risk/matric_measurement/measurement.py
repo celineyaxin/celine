@@ -21,8 +21,7 @@ def apply_cut_text(merged_df, text_column, stopwords):
 def cut_text_with_custom_dict(text, stopwords):
     if not isinstance(text, str):  # 检查 text 是否为字符串
         text = str(text)  # 如果不是，转换为字符串
-    # jieba.load_userdict(user_dict_path)  # 加载自定义词典
-    words = jieba.cut(text, cut_all=False)  # 使用精确模式分词
+    words = jieba.cut(text, cut_all=False)  
     filtered_words = [word for word in words if word not in stopwords]
     return filtered_words
 
@@ -117,6 +116,6 @@ for year in range(start_year, end_year + 1):
         risk_keywords=risk_keywords
     )
 
-    output_file_path =f'/Users/chenyaxin/Desktop/供应链风险指标测度/业绩说明会数据/check/Risk_frequency_{year}.csv'
+    output_file_path =f'/Users/chenyaxin/Desktop/供应链风险指标测度/业绩说明会数据/final_version/Risk_frequency_{year}.csv'
     # output_file_path =f'/Users/chenyaxin/Desktop/供应链风险指标测度/业绩说明会数据/Risk_frequency_{year}.csv'
     merged_df_with_risk_score.to_csv(output_file_path, index=False)
