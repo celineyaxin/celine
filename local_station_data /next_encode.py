@@ -31,22 +31,18 @@ def merge_csv_to_excel(folder_path, output_excel_path, url_column):
         print("合并后的数据为空。")
         return
 
-    try:
-        merged_df.to_excel(output_excel_path, index=False)
-        print(f"所有CSV文件已合并，编号提取完毕，并保存到 {output_excel_path}")
-    except Exception as e:
-        print(f"保存Excel文件时出错: {e}")
-    cells_count = merged_df[merged_df[url_column].astype(str).str.contains('jl', na=False)].shape[0] 
+    cells_count = merged_df[merged_df[url_column].astype(str).str.contains('hb', na=False)].shape[0] 
     print(cells_count)
-    gd_pattern = r"https://jl\.tousu\.sina\.com\.cn/complaint/view/(\d{11})/?" 
+    gd_pattern = r"https://hb\.tousu\.sina\.com\.cn/complaint/view/(\d{11})/?" 
     merged_df[url_column] = merged_df[url_column].astype(str)
     merged_df['gd_complaint_id'] = merged_df[url_column].apply(lambda x: re.search(gd_pattern, x).group(1) if re.search(gd_pattern, x) else None)
     df_guangdong = merged_df.dropna(subset=['gd_complaint_id'])
+    # df_guangdong = df_guangdong.drop_duplicates(subset=['gd_complaint_id'])
     print(len(df_guangdong))
     print(f"一共读取了 {csv_file_count} 个CSV文件。") 
     try:
         df_guangdong.to_excel(output_excel_path, index=False)
-        print(f"提取的浙江地区编号已添加到 '{output_excel_path}' 的新列中")
+        print(f"提取的湖北地区编号已添加到 '{output_excel_path}' 的新列中")
     except Exception as e:
         print(f"保存修改后的Excel文件时出错: {e}")
 
@@ -60,11 +56,11 @@ def remove_complaint_ids(original_csv_path, merged_excel_path, output_csv_path, 
     print(f"剩下的编号已保存到 {output_csv_path}")
 
 if __name__ == "__main__":
-    folder_path = '/Users/chenyaxin/Desktop/地方站导出数据/吉林站/导出'  # 替换为包含CSV文件的文件夹路径
-    output_excel_path = '/Users/chenyaxin/Desktop/地方站导出数据/吉林站/merged.xlsx'  # 合并后的Excel文件路径
+    folder_path = '/Users/chenyaxin/Desktop/地方站导出数据/湖北站/导出'  # 替换为包含CSV文件的文件夹路径
+    output_excel_path = '/Users/chenyaxin/Desktop/地方站导出数据/湖北站/merged.xlsx'  
     url_column = '页面网址'
     merge_csv_to_excel(folder_path, output_excel_path, url_column)
 
-    original_csv_path = '/Users/chenyaxin/Desktop/地方站导出数据/吉林站/complaint_ids_classfy_jl.csv'  
-    output_csv_path = '/Users/chenyaxin/Desktop/地方站导出数据/江苏站/complaint_ids_classfy_jiangsu.csv' 
+    original_csv_path = '/Users/chenyaxin/Desktop/地方站导出数据/湖北站/complaint_ids_classfy_hb.csv'  
+    output_csv_path = '/Users/chenyaxin/Desktop/地方站导出数据/四川站/complaint_ids_classfy_sc.csv' 
     remove_complaint_ids(original_csv_path, output_excel_path, output_csv_path, url_column)

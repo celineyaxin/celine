@@ -2,7 +2,6 @@ import pandas as pd
 import os
 import re
 import chardet
-import csv
 
 def merge_csv_to_excel(folder_path, output_excel_path, url_column):
     merged_df = pd.DataFrame()
@@ -30,40 +29,32 @@ def merge_csv_to_excel(folder_path, output_excel_path, url_column):
     if merged_df.empty:
         print("合并后的数据为空。")
         return
-
+    pattern = r"https?://(?:jiangsu\.tousu\.sina\.com\.cn|tousu\.sina\.com\.cn)/complaint/view/(\d{11})/?"
+    # pattern = r"https?://(?:tousu|jiangsu)\.sina\.com\.cn/complaint/view/(\d+)/?" 
+    merged_df['编号'] = merged_df[url_column].astype(str).apply(lambda x: re.search(pattern, x).group(1) if re.search(pattern, x) else None)
     try:
-        merged_df.to_excel(output_excel_path, index=False)
+        merged_df.to_csv(output_excel_path, index=False)
+        print(merged_df)
         print(f"所有CSV文件已合并，编号提取完毕，并保存到 {output_excel_path}")
     except Exception as e:
         print(f"保存Excel文件时出错: {e}")
-        
-    gd_pattern = r"https://sx\.tousu\.sina\.com\.cn/complaint/view/(\d{11})/?" 
-    merged_df[url_column] = merged_df[url_column].astype(str)
-    merged_df['gd_complaint_id'] = merged_df[url_column].apply(lambda x: re.search(gd_pattern, x).group(1) if re.search(gd_pattern, x) else None)
-    df_guangdong = merged_df.dropna(subset=['gd_complaint_id'])
-    print(len(df_guangdong))
     print(f"一共读取了 {csv_file_count} 个CSV文件。") 
-    try:
-        df_guangdong.to_excel(output_excel_path, index=False)
-        print(f"提取的浙江地区编号已添加到 '{output_excel_path}' 的新列中")
-    except Exception as e:
-        print(f"保存修改后的Excel文件时出错: {e}")
-
-def remove_complaint_ids(original_csv_path, merged_excel_path, output_csv_path, url_column):
+  
+def remove_complaint_ids(original_csv_path, merged_excel_path, output_csv_path):
     original_df = pd.read_csv(original_csv_path, usecols=['投诉编号'])  
-    merged_df = pd.read_excel(merged_excel_path, usecols=['gd_complaint_id'])  
+    merged_df = pd.read_csv(merged_excel_path, usecols=['编号'])  
 
-    remaining_ids = original_df[~original_df['投诉编号'].isin(merged_df['gd_complaint_id'])]
+    remaining_ids = original_df[~original_df['投诉编号'].isin(merged_df['编号'])]
     print(len(remaining_ids))
     remaining_ids.to_csv(output_csv_path, index=False)
     print(f"剩下的编号已保存到 {output_csv_path}")
 
 if __name__ == "__main__":
-    folder_path = '/Users/chenyaxin/Desktop/地方站导出数据/陕西站/导出'  # 替换为包含CSV文件的文件夹路径
-    output_excel_path = '/Users/chenyaxin/Desktop/地方站导出数据/陕西站/merged.xlsx'  # 合并后的Excel文件路径
+    folder_path = '/Users/chenyaxin/Desktop/地方站导出数据/江苏站/导出'  
+    output_excel_path = '/Users/chenyaxin/Desktop/地方站导出数据/江苏站/finish.csv'  
     url_column = '页面网址'
     merge_csv_to_excel(folder_path, output_excel_path, url_column)
 
-    original_csv_path = '/Users/chenyaxin/Desktop/地方站导出数据/陕西站/complaint_ids_classfy_sx.csv'  
-    output_csv_path = '/Users/chenyaxin/Desktop/地方站导出数据/辽宁站/complaint_ids_classfy_ln.csv' 
-    remove_complaint_ids(original_csv_path, output_excel_path, output_csv_path, url_column)
+    original_csv_path = '/Users/chenyaxin/Desktop/地方站导出数据/吉林站/complaint_ids_classfy_jl.csv'  
+    output_csv_path = '/Users/chenyaxin/Desktop/地方站导出数据/江苏站/add_jiangsu.csv' 
+    remove_complaint_ids(original_csv_path, output_excel_path, output_csv_path)
