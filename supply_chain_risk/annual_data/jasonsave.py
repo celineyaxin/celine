@@ -6,8 +6,8 @@ import pandas as pd
 from tqdm import tqdm
 
 text_file_path = '/Users/chenyaxin/Desktop/供应链风险指标测度/年报数据/merged_output.txt'
-stop_words_file_path = './stopwords.txt'
-userdict_file_path = './selfdictionary.txt'  # 自定义词典文件路径
+stop_words_file_path = '/Users/chenyaxin/Desktop/供应链风险指标测度/年报数据/stopwords.txt'
+userdict_file_path = '/Users/chenyaxin/Desktop/供应链风险指标测度/年报数据/selfdictionary.txt'  # 自定义词典文件路径
 
 with open(stop_words_file_path, 'r', encoding='utf-8') as file:
     stop_words = set(line.strip() for line in file)

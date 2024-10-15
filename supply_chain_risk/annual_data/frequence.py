@@ -4,6 +4,7 @@ from collections import Counter
 import jieba
 from tqdm import tqdm
 import pandas as pd
+import re
 
 def load_stop_words_and_userdict(stop_words_file, userdict_file):
     with open(stop_words_file, 'r', encoding='utf-8') as file:
@@ -15,7 +16,8 @@ def load_stop_words_and_userdict(stop_words_file, userdict_file):
 def segment_and_remove_stopwords(text, stop_words):
     text_lower = text.lower()
     words = jieba.cut(text_lower)
-    filtered_words = [word for word in words if word not in stop_words and len(word) > 1]
+    pattern = re.compile(r'\d+(\.\d+)?%?')
+    filtered_words = [word for word in words if word not in stop_words and len(word) > 1 and not word.isdigit() and not pattern.search(word)]
     return filtered_words
 
 def generate_word_frequency(text_list, stop_words, userdict,min_freq=5):
@@ -42,10 +44,9 @@ def write_word_freq_to_csv(filtered_freq, output_csv_file):
 
 def main():
     text_file_path = '/Users/chenyaxin/Desktop/供应链风险指标测度/年报数据/merged_output.txt'
-    # text_file_path = '/Users/chenyaxin/Desktop/供应链风险指标测度/年报数据/test.txt'
-    stop_words_file_path = '/Users/chenyaxin/Desktop/供应链风险指标测度/年报数据/code/stopwords.txt'
+    stop_words_file_path = '/Users/chenyaxin/Desktop/供应链风险指标测度/年报数据/stopwords.txt'
     output_csv_file = '/Users/chenyaxin/Desktop/供应链风险指标测度/年报数据/word_frequency.csv'
-    userdict_file_path = '/Users/chenyaxin/Desktop/供应链风险指标测度/年报数据/code/selfdictionary.txt'
+    userdict_file_path = '/Users/chenyaxin/Desktop/供应链风险指标测度/年报数据/selfdictionary.txt'
 
     stop_words, userdict = load_stop_words_and_userdict(stop_words_file_path, userdict_file_path)
     process_texts = []
@@ -54,6 +55,7 @@ def main():
     process_texts = [text.strip() for text in process_texts]
     word_freq = generate_word_frequency(process_texts, stop_words, userdict)
     write_word_freq_to_csv(word_freq, output_csv_file)
+
 if __name__ == "__main__":
     main()
 

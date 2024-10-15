@@ -9,7 +9,7 @@ model = Word2Vec.load(model_path)
 data = []
 for word in words:
     if word in model.wv.index_to_key:  # 检查word是否存在于模型的词汇表中
-        similar_words = model.wv.most_similar(word, topn=80)
+        similar_words = model.wv.most_similar(word, topn=120)
         for similar_word, similarity in similar_words:
             data.append({
                 'original_word': word,
