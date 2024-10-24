@@ -17,13 +17,13 @@
 * 补充提取内容：投诉对象100以下并且不在入驻商家列表的商家投诉
 * 51913
 
-## supplementary_encode.py
+## 1. supplementary_encode.py
 * 爬取过程中会有一些遗漏，筛选出来重新爬取
 * 从进行分类的文件中complaint_ids_classfy_xx剔除已经爬取的地方
 * 修改参数：pattern/folder_path（都是同一个地方站）
 * 在筛选之后还是需要分子文件重新爬取筛选，使用split.py文件修改i
 
-## next_encode.py 生成下一个地区需要跑的编码 
+## 2. next_encode.py 生成下一个地区需要跑的编码 
 * 修改参数：cells_count/gd_pattern/folder_path/output_excel_path/original_csv_path/output_csv_path 
  output_csv_path
 ### filter_province.py
@@ -41,13 +41,23 @@ jiangsu 234083
 hunan 122908
 henan 145238
 hb    127448
+sc    143220
+fj    91145
+ah    101823
+hainan 31586
+jx    168200
+hebei 103653
+hlj   45047
+ln
+cq
+tj
 * **filter_province_simple.py**：使用少量文件合并提取
 
 ### filter_finished.py
 * 把原始编码剔除已经跑好的
 * 修改:original_csv_path/merged_excel_path
 
-## splite.py
+## 3. splite.py
 * 重新根据数量分类
 * 修改：file_path
 
