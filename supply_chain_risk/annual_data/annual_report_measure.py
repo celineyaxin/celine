@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import jieba
+import re
 from collections import Counter
 from tqdm import tqdm
 
@@ -19,7 +20,9 @@ def cut_text_with_custom_dict(text, stopwords):
     if not isinstance(text, str):  # 检查 text 是否为字符串
         text = str(text)  # 如果不是，转换为字符串
     words = jieba.cut(text, cut_all=False)  
-    filtered_words = [word for word in words if word not in stopwords]
+    filtered_words = [word for word in words if word not in stopwords and word.strip()]
+    num_pattern = re.compile(r'^\d+(?:\.\d+)?%?$')
+    filtered_words = [word for word in filtered_words if not num_pattern.match(word)]
     return filtered_words
 
 def calculate_supply_chain_risk(filtered_words, supply_chain_keywords, risk_keywords):
@@ -130,8 +133,8 @@ def process_txt_files(directory):
 
     return results_df
 
-# directory = '/Users/chenyaxin/Desktop/供应链风险指标测度/年报数据/文本'
-directory = '/Users/chenyaxin/Desktop/供应链风险指标测度/年报数据/test'
+directory = '/Users/chenyaxin/Desktop/供应链风险指标测度/年报数据/文本'
+# directory = '/Users/chenyaxin/Desktop/供应链风险指标测度/年报数据/test'
 results_df = process_txt_files(directory)
 
 excel_path = '/Users/chenyaxin/Desktop/供应链风险指标测度/年报数据/supply_chain_risk_indicators.xlsx'
