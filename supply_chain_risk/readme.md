@@ -6,6 +6,7 @@
 * 只保留年报，删除半年报
 * 删除“8”开头股票代码
 
+<!-- 这是一个备注 -->
 ### filter.py
 extract_content提取所有年报文件中的指定内容
 * 使用find方法在文本中查找每个标题的位置，找到标题后，检查标题后的第一个字符，确保它不是列表中的一个字符（如“。”或“一”），以避免错误地将相似的字符串识别为标题。
@@ -15,6 +16,7 @@ extract_content提取所有年报文件中的指定内容
 * 根据找到的结束标题位置，截取从标题开始到结束标题之前的内容。
 * 用正则表达式匹配对应内容
 filter_simple.py：提取单个年报文件中的指定内容
+<!-- 这是一个备注 -->
 
 ### merge.py
 * 对于文本进行一些初步处理(删除节标题，删除换行符制表符等)
@@ -29,15 +31,26 @@ filter_simple.py：提取单个年报文件中的指定内容
 ### jasonsave.py
 根据分词的结果保存进jason文件
 
-### word2vec_train
+### word2vec_train.py
 * 根据分词结果对文本进行训练
 * 能够更好的查看epoch的迭代信息
 
-### word2vec_test
+### word2vec_test.py
 看训练的结果
 
-### output
+### output.py
 结果输出
+
+### annual_report_measure.py
+* 根据分词的结果计算各个得分的指标
+
+### random_words.py
+* 通过随机抽取txt文件查看分词的结果可以对stop_words 以及user_dictionary进行词语的调整
+* filtered_words[:300]：调整查看词语的位置修改
+* selected_files = txt_files[:20]：随机抽取文件的数量进行修改
+
+### view_cut.py
+* 查看调整之后的结果
 
 ## earnings_call
 ### append.py
@@ -61,10 +74,8 @@ filter_simple.py：提取单个年报文件中的指定内容
 ### output
 * 输出相似的词语及其编码
 
-## matric_measurement
-这一个文件夹主要针对已经获得的词汇和结果进行对应词语的指标构造
-
-### stopwords.txt
+### 词语筛选预处理
+#### stopwords.txt
 需要删除的对象都有：
 * 标点符号
 * 连词
@@ -73,17 +84,18 @@ filter_simple.py：提取单个年报文件中的指定内容
 * 拟声词
 * 删除称呼
 
-### risk_words.py
+#### risk_words.py
 * 对提取出来的词语进行筛选
 * 系统性
-### supplychain_words.py
+
+#### supplychain_words.py
 * 对提取出来的供应链相关词语进行筛选
 * 删除词汇：电池厂；家电企业；车企；车厂；跨国企业；汽车品牌；大宗商品；重要环节；环节；各个环节；主机厂；整车厂；零配件；汽车厂；垂直；贯通；延展；重构；服务体系；体系化；一条龙；全方位；本地化；比价；业务流程；体系；全球化；**客户**;打通
 
-### random_sample.py
+#### random_sample.py
 * 对/Users/chenyaxin/Desktop/供应链风险指标测度/业绩说明会数据/merged_output.xlsx文件随机抽取2000条信息找一找可以剔除掉的词都有哪些，确认stopwords以及selfdictionary
 
-### duplicates_drop.py
+#### duplicates_drop.py
 * 对整理出来的stopwords以及selfdictionary删除重复值（不然会增加运算负荷）
 
 ### mergeQA.py
@@ -107,7 +119,7 @@ filter_simple.py：提取单个年报文件中的指定内容
 
 ### similarity_final.py
 * 筛选出来的词语合并相似度，最终输出汇报的结果
-
+<!-- 这是一个备注 -->
 ### count.py
 * 统计每个词语在数据中出现的频次
 
@@ -118,7 +130,7 @@ filter_simple.py：提取单个年报文件中的指定内容
 
 ### compute_supplychainrisk_score.py
 * 只计算供应链风险得分
-
+<!-- 这是一个备注 -->
 
 
 

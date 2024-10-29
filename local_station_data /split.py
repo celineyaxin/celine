@@ -39,5 +39,5 @@ def split_csv(file_path, num_parts):
 
 
 # 使用函数
-file_path = '/Users/chenyaxin/Desktop/地方站导出数据/四川站/complaint_ids_classfy_sc.csv' 
-split_csv(file_path, 138)
+file_path = '/Users/chenyaxin/Desktop/地方站导出数据/天津站/complaint_ids_classfy_tj.csv' 
+split_csv(file_path, 56)

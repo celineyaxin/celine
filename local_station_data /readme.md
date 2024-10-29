@@ -48,9 +48,9 @@ hainan 31586
 jx    168200
 hebei 103653
 hlj   45047
-ln
-cq
-tj
+ln    81142
+cq    55826
+tj    34649
 * **filter_province_simple.py**：使用少量文件合并提取
 
 ### filter_finished.py
