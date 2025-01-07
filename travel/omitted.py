@@ -29,9 +29,6 @@ def merge_csv_to_excel(folder_path, output_excel_path, url_column):
     if merged_df.empty:
         print("合并后的数据为空。")
         return
-    pattern = r"https?://(?:hebei\.tousu\.sina\.com\.cn|tousu\.sina\.com\.cn)/complaint/view/(\d{11})/?"
-    # pattern = r"https?://(?:tousu|jiangsu)\.sina\.com\.cn/complaint/view/(\d+)/?" 
-    merged_df['编号'] = merged_df[url_column].astype(str).apply(lambda x: re.search(pattern, x).group(1) if re.search(pattern, x) else None)
     try:
         merged_df.to_csv(output_excel_path, index=False)
         print(merged_df)
@@ -42,19 +39,19 @@ def merge_csv_to_excel(folder_path, output_excel_path, url_column):
   
 def remove_complaint_ids(original_csv_path, merged_excel_path, output_csv_path):
     original_df = pd.read_csv(original_csv_path, usecols=['投诉编号'])  
-    merged_df = pd.read_csv(merged_excel_path, usecols=['编号'])  
+    merged_df = pd.read_csv(merged_excel_path, usecols=['投诉编号'])  
 
-    remaining_ids = original_df[~original_df['投诉编号'].isin(merged_df['编号'])]
+    remaining_ids = original_df[~original_df['投诉编号'].isin(merged_df['投诉编号'])]
     print(len(remaining_ids))
     remaining_ids.to_csv(output_csv_path, index=False)
     print(f"剩下的编号已保存到 {output_csv_path}")
 
 if __name__ == "__main__":
-    folder_path = '/Users/chenyaxin/Desktop/处理黑猫地方站/未完全提取数据/河北站/导出'  
-    output_excel_path = '/Users/chenyaxin/Desktop/处理黑猫地方站/未完全提取数据/河北站/finish.csv'  
+    folder_path = '/Users/chenyaxin/Desktop/互联网旅游公约/业务分类结果'  
+    output_excel_path = '/Users/chenyaxin/Desktop/互联网旅游公约/业务分类结果/finish.csv'  
     url_column = '页面网址'
     merge_csv_to_excel(folder_path, output_excel_path, url_column)
 
-    original_csv_path = '/Users/chenyaxin/Desktop/处理黑猫地方站/未完全提取数据/河北站/add_classfy_hebei.csv'  
-    output_csv_path = '/Users/chenyaxin/Desktop/处理黑猫地方站/未完全提取数据/河北站/add_hebei.csv' 
+    original_csv_path = '/Users/chenyaxin/Desktop/互联网旅游公约/meituan_quna.csv'  
+    output_csv_path = '/Users/chenyaxin/Desktop/互联网旅游公约/爬取服务数据/add_meituan_quna.csv' 
     remove_complaint_ids(original_csv_path, output_excel_path, output_csv_path)

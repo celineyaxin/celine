@@ -31,9 +31,9 @@ def merge_csv_to_excel(folder_path, output_excel_path, url_column):
         print("合并后的数据为空。")
         return
 
-    cells_count = merged_df[merged_df[url_column].astype(str).str.contains('tj', na=False)].shape[0] 
+    cells_count = merged_df[merged_df[url_column].astype(str).str.contains('gd', na=False)].shape[0] 
     print(cells_count)
-    gd_pattern = r"https://tj\.tousu\.sina\.com\.cn/complaint/view/(\d{11})/?" 
+    gd_pattern = r"https://jx\.tousu\.sina\.com\.cn/complaint/view/(\d{11})/?" 
     merged_df[url_column] = merged_df[url_column].astype(str)
     merged_df['gd_complaint_id'] = merged_df[url_column].apply(lambda x: re.search(gd_pattern, x).group(1) if re.search(gd_pattern, x) else None)
     df_guangdong = merged_df.dropna(subset=['gd_complaint_id'])
@@ -56,11 +56,11 @@ def remove_complaint_ids(original_csv_path, merged_excel_path, output_csv_path, 
     print(f"剩下的编号已保存到 {output_csv_path}")
 
 if __name__ == "__main__":
-    folder_path = '/Users/chenyaxin/Desktop/地方站导出数据/天津站/导出'  # 替换为包含CSV文件的文件夹路径
-    output_excel_path = '/Users/chenyaxin/Desktop/地方站导出数据/天津站/merged.xlsx'  
+    folder_path = '/Users/chenyaxin/Desktop/处理黑猫地方站/未完全提取数据/江西站/导出'  # 替换为包含CSV文件的文件夹路径
+    output_excel_path = '/Users/chenyaxin/Desktop/处理黑猫地方站/未完全提取数据/江西站/merged.xlsx'  
     url_column = '页面网址'
     merge_csv_to_excel(folder_path, output_excel_path, url_column)
 
-    original_csv_path = '/Users/chenyaxin/Desktop/地方站导出数据/天津站/complaint_ids_classfy_tj.csv'  
-    output_csv_path = '/Users/chenyaxin/Desktop/地方站导出数据/其他站/complaint_ids_classfy_others.csv' 
+    original_csv_path = '/Users/chenyaxin/Desktop/处理黑猫地方站/未完全提取数据/江西站/add_classfy_jx.csv'  
+    output_csv_path = '/Users/chenyaxin/Desktop/处理黑猫地方站/未完全提取数据/河南站/add_classfy_henan.csv' 
     remove_complaint_ids(original_csv_path, output_excel_path, output_csv_path, url_column)

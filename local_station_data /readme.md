@@ -1,21 +1,27 @@
 # 网页内容提取
+
 ## split.py
-* 现在我已经通过之前的工作获得了具体的金融类投诉编码（删除2024部分数据）
+* 现在我已经通过之前的工作获得了具体的金融类投诉编码（有贷款业务）**financial_complains.csv**
+* 删除2024部分数据获取**编号.csv**用于分组爬取地方站信息
 <!-- 这是一个备注 -->
-通过确定有贷款业务的金融类企业，提取企业内部的投诉内容
-* 因为每次只能批量提取10000，要对所有编码分类成300+个文件
+每次只能批量提取10000，要对所有编码分类成300+个文件
 
 <!-- 这是一个备注 -->
-在数据处理过程中出了一点小问题，为了提高工作效率，现在已经跑完了一部分编号。并且每个文件只有7000条文件数量比较多就会很浪费时间，所以需要代码剔除重新分
+在刚开始test的过程中出现了分类的失误：
+* 现在运行了一部分编号
+* 每个文件只有7000条文件数量比较多就会很浪费时间
+需要代码剔除重新分类
 * **append.py**：需要合并一下已经提取的编码内容
 * **filter_finished.py**： 把原始编码剔除已经跑好的
 * **splite.py**：重新分类
-<!-- 这是一个备注 -->
 
 ## supplementary_extraction.py
 * 原规则：金融类企业根据入驻商家列表确定，其中还包含投诉量较多的（投诉对象投诉100条以上）商家确定
-* 补充提取内容：投诉对象100以下并且不在入驻商家列表的商家投诉
-* 51913
+* 补充提取内容：投诉对象100以下并且不在入驻商家列表的商家投诉**51913条未处理数据**
+* 根据待提取商家列表获取对应的投诉内容
+* 商家列表中的商家信息并不完全来自于金融类企业，根据关键词对投诉的内容进行进一步的筛选
+# 地方站数据处理
+对于每一个地区的数据筛选完之后都可以做一波剔除然后再跑下一个省份的数据
 
 ## 1. supplementary_encode.py
 * 爬取过程中会有一些遗漏，筛选出来重新爬取
@@ -61,9 +67,49 @@ tj    34649
 * 重新根据数量分类
 * 修改：file_path
 
+## 4. summary.py
+* 在原始文件中新加入一列：地区列统计每个地方站的投诉地区
+financial_complains.csv ➡️ updated_complaint_summary.csv
+updated_complaint_summary.csv ➡️ 
+## 5. statistics.py
+* 统计地方年份信息
+* mean:合并之后根据分好的组别调整指标
+
+# 爬取过程中的遗漏进行查漏补缺
+## all_add.py
+* 原始文件中2018-2024年数据，删除2019之前及2024之后的数据
+* 筛选出没有地区信息的数据no_region_info.csv
+* 添加到add_classfy_gd.csv重新进行循环
+
 <!-- 这是一个备注 -->
-### 对于每一个地区的数据筛选完之后都可以做一波剔除然后再跑下一个省份的数据
-* **filter_province.py**：提取出省份的信息
-* **filter_finished**.py：删除这些已经确定省份的信息
-* **split.py**：再进行分组
+1. check 之后有一些连续的跑错的重新生成merge.xlsx文件
+2. 重新生成add_classfy_zhejiang.csv，剔除add_classfy_zj.csv中的投诉编号，找出没跑过的add_classfy_zj_part12.csv
+3. merged.xlsx重新跑一遍得到zj.csv
+4. 同样的处理一下江苏站：先得到add_classfy_jiangsu_part12.csv，再得到 merged.xlsx/jiangsu.csv
+5. double_check.py:merged.xlsx与zj.csv做一个double check筛选出真的属于地方站的信息
+(浙江站只有一条，江苏站一条都没有所以不用做进一步的剔除)
+filter_province ➡️ double_check.py ➡️ filter_finished.py ➡️ split.py
+* filter_province.py:gd_pattern/folder_path/output_excel_path
+gd 24406
+zj 1
+jiangsu 0
+jx 6226
+henan 0
+hunan 0
+hb  7105
+sc  9364
+ah  6381
+hebei  7291
+sh 0
+fj 6228
+sx 0
+ln 5837
+gx 0
+jl 1
+cq 3929
+hlj 3048
+hainan 1562
+tj 2606
+* 添加投诉对象对应的投诉数量小于100的金融类投诉
+
 

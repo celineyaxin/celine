@@ -1,9 +1,9 @@
 import pandas as pd
 
 # 指定文件路径
-original_csv_path = '/Users/chenyaxin/Desktop/地方站导出数据/湖南站/complaint_ids_classfy_hunan.csv'  # 替换为原始数据文件的路径
-merged_excel_path = '/Users/chenyaxin/Desktop/地方站导出数据/湖南站/merged.xlsx'  # 替换为合并后的Excel文件的路径
-output_csv_path = '/Users/chenyaxin/Desktop/地方站导出数据/河南站/complaint_ids_classfy_henan.csv'  # 输出CSV文件的路径
+original_csv_path = '/Users/chenyaxin/Desktop/处理黑猫地方站/未完全提取数据/天津站/add_classfy_tj.csv'  # 替换为原始数据文件的路径
+merged_excel_path = '/Users/chenyaxin/Desktop/处理黑猫地方站/未完全提取数据/天津站/filtered_merged.xlsx'  # 替换为合并后的Excel文件的路径
+output_csv_path = '/Users/chenyaxin/Desktop/处理黑猫地方站/未完全提取数据/其他站/add_classfy_others.csv'  # 输出CSV文件的路径
 
 # 读取原始数据文件中的编号列
 original_df = pd.read_csv(original_csv_path, usecols=['投诉编号'])  # 假设列名是'编号'，根据实际情况调整

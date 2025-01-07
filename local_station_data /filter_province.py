@@ -37,9 +37,9 @@ def merge_csv_to_excel(folder_path, output_excel_path,url_column):
         print(f"所有CSV文件已合并，编号提取完毕，并保存到 {output_excel_path}")
     except Exception as e:
         print(f"保存Excel文件时出错: {e}")
-    cells_count = merged_df[merged_df[url_column].astype(str).str.contains('sx', na=False)].shape[0] 
+    cells_count = merged_df[merged_df[url_column].astype(str).str.contains('hebei', na=False)].shape[0] 
     print(cells_count)
-    gd_pattern = r"https://jl\.tousu\.sina\.com\.cn/complaint/view/(\d{11})/?"
+    gd_pattern = r"https://tj\.tousu\.sina\.com\.cn/complaint/view/(\d{11})/?"
     merged_df[url_column] = merged_df[url_column].astype(str)
     merged_df['gd_complaint_id'] = merged_df[url_column].apply(lambda x: re.search(gd_pattern, x).group(1) if re.search(gd_pattern, x) else None)
     df_guangdong = merged_df.dropna(subset=['gd_complaint_id'])
@@ -51,8 +51,8 @@ def merge_csv_to_excel(folder_path, output_excel_path,url_column):
     except Exception as e:
         print(f"保存修改后的Excel文件时出错: {e}")
 # 指定包含CSV文件的文件夹路径
-folder_path = '/Volumes/yaxindedisk 1/地方站数据/吉林站/导出'  # 替换为包含CSV文件的文件夹路径
+folder_path = '/Users/chenyaxin/Desktop/处理黑猫地方站/未完全提取数据/天津站/导出'  # 替换为包含CSV文件的文件夹路径
 # 指定合并后的Excel文件的路径
-output_excel_path = '/Users/chenyaxin/Desktop/地方站导出数据/吉林站/merged.xlsx'  # 合并后的Excel文件路径
+output_excel_path = '/Users/chenyaxin/Desktop/处理黑猫地方站/未完全提取数据/天津站/merged.xlsx'  # 合并后的Excel文件路径
 url_column = '页面网址'
 merge_csv_to_excel(folder_path, output_excel_path,url_column)
