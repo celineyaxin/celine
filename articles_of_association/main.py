@@ -29,7 +29,9 @@ def chinese_to_arabic_num(chinese_num):
         '十八': 18, '十九': 19, '二十': 20, '二十一': 21,
         '二十二': 22, '二十三': 23, '二十四': 24, '二十五': 25,
         '二十六': 26, '二十七': 27, '二十八': 28, '二十九': 29,
-        '三十': 30, '三十一': 31, '〇': 0
+        '三十': 30, '三十一': 31, '〇': 0, '0': 0, '1': 1,
+        '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7,
+        '8':8, '9':9, '○':0
     }
     result = 0
     temp = 0
@@ -41,8 +43,6 @@ def chinese_to_arabic_num(chinese_num):
             else:
                 temp = temp * 10 + num_map[char]
         else:
-            import pdb
-            pdb.set_trace()
             raise ValueError(f"未知的中文数字: {char}")
     result += temp
     return result
@@ -53,6 +53,10 @@ def contains_revision(filename):
     patterns = [
         r'（[^）]*修订[^）]*）',
         r'（[^）]*修正稿[^）]*）?',
+        r'.*修订稿$',
+        r'.*修订版$',
+        r'（[^\)]*修订[^\)]*\)',
+        r'\([^）]*修正稿[^）]*）?',
         r'\([^\)]*修订[^\)]*\)',
         r'\([^\)]*修正稿[^\)]*\)?'
     ]
@@ -66,6 +70,23 @@ def contains_revision(filename):
             return False # 如果找到匹配项，返回 False；否则返回 True
     return True
 
+def length_without_parentheses(s):
+    # 定义括号模式
+    patterns = [
+        r'\([^)]*\)',
+        r'（[^）]*）'
+    ]
+    
+    # 使用正则表达式替换括号及其内容为空字符串
+    new_s = s
+    for pattern in patterns:
+        new_s = re.sub(pattern, '', new_s)
+    
+    # 计算替换后字符串的长度
+    length = len(new_s)
+    
+    return length
+
 class CninfoSpider:
     def __init__(self):
         self.headers = {
@@ -73,14 +94,19 @@ class CninfoSpider:
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
         }
+        self.lenMax = 15
         self.search_url = 'http://www.cninfo.com.cn/new/fulltextSearch/full'
         self.download_url = 'http://static.cninfo.com.cn/'
         self.head_keyword = ["序号", "条款"]
-        self.original_keyword = ["原内容","原章程","原条款","原规定","原规则","原规章","原规范","原第", "原议事", "现条款", "修订前", "原《公司章程》", "原表述"]
-        self.modified_keyword = ["修改后","修订后","修订为","现修订","修改为","修订为", "新增", "变更后", "变更为", "修订条款", "修订规定", "修订规则", "修订规章", "修订规范", "修订第", "增加第", "改为：", "更为：", "更改为", "删除", "改为第", "改为“"]
+        self.original_keyword = ["原内容","原章程","原条款","原规定","原规则","原规章","原规范","原第", "原议事", "现条款", "修订前", "原《公司章程》", "原表述", "原文","变更前","修改前", \
+         "现有章程","原制度","原公司章程", "原条文", "原“第", "原：“第", "现章程", "现行《公司章程》", "现行条款"]
+        self.modified_keyword = ["修改后","修订后","修订为","现修订","修改为","修订为", "新增", "变更后", "变更为", "修订条款", "修订规定", "修订规则", "修订规章", "修订规范", "修订第", \
+            "增加第", "改为：", "更为：", "更改为", "删除", "改为第", "改为“","增加第", "新增第", "新增一","新增条款", "顺延为", "增加“", "顺延：","顺延，", "增加一", "增加二", "增加三", \
+            "增加四", "增加五", "增加了", "新条款", "修改内容", "修改作为" \
+        ]
         self.taboo_keyword = ["审议机构", "修订内容"]
-        self.append_keyword = ["增加第", "新增第", "新增一"]
-        self.break_page_keyword = ["附：《公司章程"]
+        self.append_keyword = ["增加第", "新增第", "新增一","新增条款","增加“", "增加一", "增加二", "增加三", "增加四", "增加五", "增加了"]
+        self.break_page_keyword = ["附：《公司章程","（修订稿）","《公司章程》全文如下"]
         # 设置重试策略
         retry_strategy = Retry(
             total=5,
@@ -364,7 +390,7 @@ class CninfoSpider:
         board_patterns = [
             r'董事会.*?(\d{4}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日)',
             r'(\d{4}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日).*?董事会',
-            r'董事会.*?([一二三四五六七八九十〇零一二三四五六七八九十]+\s*年\s*[一二三四五六七八九十〇零一二三四五六七八九十]+\s*月\s*[一二三四五六七八九十〇零一二三四五六七八九十]+\s*日)'
+            r'董事会.*?([一二三四五六七八九十○〇零一二三四五六七八九十]+\s*年\s*[一二三四五六七八九十○〇零一二三四五六七八九十]+\s*月\s*[一二三四五六七八九十○〇零一二三四五六七八九十]+\s*日)'
         ]
         for pattern in board_patterns:
             matches = re.finditer(pattern, text, re.IGNORECASE | re.DOTALL)
@@ -425,11 +451,36 @@ class CninfoSpider:
                 not_append = False
             if any(keyword in line for keyword in self.original_keyword):
                 not_append = True
+                enable_original = True
+                enable_modified = False
             if any(keyword in line for keyword in self.modified_keyword):
                 enable_original = False
                 enable_modified = True
+                # 如果有未处理的条款，先保存
+                if current_original != "" or current_modified != "":
+                    # 对内容进行分类
+                    category = self.classify_article_content(current_modified or current_original)
+                    new_row = {
+                        'pdfID': pdfID,
+                        'original_content': current_original,
+                        'modified_content': current_modified,
+                        'category': category
+                    }
+                    # 将字典转换为 DataFrame
+                    new_row_df = pd.DataFrame([new_row])
+                    df = pd.concat([df, new_row_df], ignore_index=True)
+                # 重置当前条款
+                current_original = ""
+                current_modified = ""
+                # 判断是原始内容还是修改内容
+                if enable_modified:
+                    current_modified = line
+                elif enable_original:
+                    current_original = line 
+                continue
             # 检查是否是条款行
-            article_match = re.search(r'(第[一二三四五六七八九十百千]+条)(?=.+)', line)
+            # article_match = re.search(r'(第[一二三四五六七八九十百千]+条\s*)(?=[\u4e00-\u9fff]{2,})', line)
+            article_match = re.search(r'(第[一二三四五六七八九十百千]+条\s*).{0,100}[\u4e00-\u9fff].{0,100}[\u4e00-\u9fff]', line)
             if article_match:
                 term = article_match.group(1)
                 if not_append and term not in terms:
@@ -491,12 +542,24 @@ class CninfoSpider:
 
         return df
 
+    def test_pdf_table(self, pdf_path):
+        contains_revision(pdf_path)
+        with pdfplumber.open(pdf_path) as pdf:
+            # 读取所有页面
+            text = ''
+            for page in pdf.pages:
+                text += page.extract_text() + '\n'
+
+            # 提取基本信息
+            basic_info = self.extract_basic_info(text)
+            return basic_info
 
     def extract_pdf_table_info(self, pdf_path, pdfID, clause_df):
         current_original = None
         current_modified = None
         enable_write = False
         enable_case1 = False
+        enable_case2 = False
         original_index = 0
         modified_index = 0
         special_case = False
@@ -507,64 +570,123 @@ class CninfoSpider:
             for page in pdf.pages:
                 tables = page.extract_tables()
                 tables = [item for sublist in tables for item in sublist]
-                # import pdb
-                # pdb.set_trace()
                 if tables:
                     for table in tables:
+                        if table is None:
+                            continue
+                        if all(x is None or x == "" for x in table):
+                            continue
                         if len(table) > 5:
                             table = [item for item in table if item is not None and item != ""]
+                        if len(table) == 1:
+                            if not finded_head and table[0] is not None :
+                                if length_without_parentheses(table[0]) < self.lenMax and any(keyword in table[0] for keyword in self.modified_keyword):
+                                    finded_head = True
+                                    enable_write = True
+                                    continue
+                            if not finded_head and enable_write and not enable_case1:
+                                current_original = None
+                                current_modified = table[0]
+                            if table[0] is not None :
+                                if length_without_parentheses(table[0]) < self.lenMax and any(keyword in table[0] for keyword in self.taboo_keyword) :
+                                    enable_write = False
                         if len(table) == 2:
-                            if  any(keyword in table[0] for keyword in self.original_keyword) and any(keyword in table[1] for keyword in self.modified_keyword):
-                                finded_head = True
-                                enable_case1 = False
-                                enable_write = True
-                                continue
+                            if not finded_head and table[0] is not None and table[1] is not None :
+                                if length_without_parentheses(table[0]) < self.lenMax and any(keyword in table[0] for keyword in self.original_keyword) and length_without_parentheses(table[1]) < self.lenMax and any(keyword in table[1] for keyword in self.modified_keyword):
+                                    finded_head = True
+                                    enable_case1 = False
+                                    enable_write = True
+                                    continue
+                            if not finded_head and table[0] is not None and table[1] is not None :
+                                if length_without_parentheses(table[0]) < self.lenMax and any(keyword in table[0] for keyword in self.head_keyword) and length_without_parentheses(table[1]) < self.lenMax and any(keyword in table[1] for keyword in self.modified_keyword):
+                                    finded_head = True
+                                    enable_case1 = True
+                                    enable_write = True
+                                    continue
                             if enable_write and not enable_case1:
                                 current_original = table[0]
                                 current_modified = table[1]
-                            if any(keyword in table[0] for keyword in self.head_keyword) and any(keyword in table[1] for keyword in self.modified_keyword):
-                                finded_head = True
-                                enable_case1 = True
-                                enable_write = True
-                                continue
                             if enable_write and enable_case1:
                                 current_original = None
                                 current_modified = table[1]
-                            if any(keyword in table[1] for keyword in self.taboo_keyword) :
-                                enable_write = False
+                            if table[1] is not None :
+                                if length_without_parentheses(table[1]) < self.lenMax and any(keyword in table[1] for keyword in self.taboo_keyword) :
+                                    enable_write = False
                         if len(table) == 3:
-                            if  any(keyword in table[1] for keyword in self.original_keyword) \
-                            and any(keyword in table[2] for keyword in self.modified_keyword):
-                                finded_head = True
-                                enable_write = True
-                                continue
-                            current_original = table[1]
-                            current_modified = table[2]
-                            if any(keyword in table[1] for keyword in self.taboo_keyword) or any(keyword in table[2] for keyword in self.taboo_keyword):
-                                enable_write = False
-                                continue
+                            if not finded_head and table[1] is not None and table[2] is not None :
+                                if length_without_parentheses(table[1]) < self.lenMax and any(keyword in table[1] for keyword in self.original_keyword) \
+                                and length_without_parentheses(table[2]) < self.lenMax and any(keyword in table[2] for keyword in self.modified_keyword):
+                                    enable_case1 = True
+                                    enable_case2 = False
+                                    finded_head = True
+                                    enable_write = True
+                                    continue
+                            if not finded_head and table[0] is not None and table[1] is not None :
+                                if length_without_parentheses(table[0]) < self.lenMax and any(keyword in table[0] for keyword in self.original_keyword) \
+                                and length_without_parentheses(table[1]) < self.lenMax and any(keyword in table[1] for keyword in self.modified_keyword):
+                                    enable_case1 = False
+                                    enable_case2 = True
+                                    finded_head = True
+                                    enable_write = True
+                                    continue
+                            if not finded_head and table[1] is not None :
+                                if length_without_parentheses(table[1]) < self.lenMax and any(keyword in table[1] for keyword in self.modified_keyword) :
+                                    enable_case1 = False
+                                    enable_case2 = False
+                                    finded_head = True
+                                    enable_write = True
+                                    continue
+                            if enable_write and enable_case1 and not enable_case2:
+                                current_original = table[1]
+                                current_modified = table[2]
+                            if enable_write and not enable_case1 and enable_case2:
+                                current_original = table[0]
+                                current_modified = table[1]
+                            if enable_write and not enable_case1 and not enable_case2:
+                                current_original = None
+                                current_modified = table[2]
+                            if (table[1] is not None) and (table[2] is not None) :
+                                if length_without_parentheses(table[1]) < self.lenMax and length_without_parentheses(table[2]) < self.lenMax and (any(keyword in table[1] for keyword in self.taboo_keyword)) or (any(keyword in table[2] for keyword in self.taboo_keyword)):
+                                    enable_write = False
+                                    continue
                         if len(table) == 4:
-                            if  any(keyword in table[1] for keyword in self.original_keyword) \
-                            and any(keyword in table[3] for keyword in self.modified_keyword):
-                                finded_head = True
-                                enable_write = True
-                                continue
-                            current_original = table[1]
-                            current_modified = table[3]
-                            if any(keyword in table[1] for keyword in self.taboo_keyword) or any(keyword in table[2] for keyword in self.taboo_keyword):
-                                enable_write = False
-                                continue
+                            if not finded_head and table[1] is not None and table[3] is not None :
+                                if length_without_parentheses(table[1]) < self.lenMax and any(keyword in table[1] for keyword in self.original_keyword) \
+                                and len(table[3]) < self.lenMax and any(keyword in table[3] for keyword in self.modified_keyword):
+                                    finded_head = True
+                                    enable_case1 = True
+                                    enable_write = True
+                                    continue
+                            if enable_write and enable_case1:
+                                current_original = table[1]
+                                current_modified = table[3]
+                            if not finded_head and table[1] is not None and table[2] is not None :
+                                if length_without_parentheses(table[1]) < self.lenMax and any(keyword in table[1] for keyword in self.original_keyword) \
+                                and length_without_parentheses(table[2]) < self.lenMax and any(keyword in table[2] for keyword in self.modified_keyword):
+                                    finded_head = True
+                                    enable_case1 = False
+                                    enable_write = True
+                                    continue
+                            if enable_write and not enable_case1:
+                                current_original = table[1]
+                                current_modified = table[2]
+                            if (table[1] is not None) and (table[2] is not None) :
+                                if length_without_parentheses(table[1]) < self.lenMax and length_without_parentheses(table[2]) < self.lenMax and any(keyword in table[1] for keyword in self.taboo_keyword) or any(keyword in table[2] for keyword in self.taboo_keyword):
+                                    enable_write = False
+                                    continue
                         if not finded_head and not special_case:
                             for index, item in enumerate(table):    
                                 for keyword in self.original_keyword:
-                                    if keyword in item:
-                                        table_original = table
-                                        original_index = index
+                                    if item is not None:
+                                        if length_without_parentheses(item) < self.lenMax and keyword in item:
+                                            table_original = table
+                                            original_index = index
                                 for keyword in self.modified_keyword:
-                                    if keyword in item:
-                                        table_modified = table
-                                        modified_index = index
-                            if table_original is table_modified:
+                                    if item is not None :
+                                        if length_without_parentheses(item) < self.lenMax and keyword in item:
+                                            table_modified = table
+                                            modified_index = index
+                            if not finded_head and table_original is table_modified:
                                 finded_head = True
                                 enable_write = True
                                 special_case = True
@@ -739,11 +861,17 @@ def main():
     spider = CninfoSpider()
 
     # 从Excel文件读取股票代码
-    excel_path = '股票代码.xlsx'  # Excel文件路径
+    excel_path = 'test_stkcd.xlsx'  # Excel文件路径
     if os.path.exists(excel_path):
         stock_list = spider.read_stock_codes_from_excel(excel_path, code_column='Symbol')
+        stock_list = stock_list[51:60]
         if stock_list:
             spider.process_stock_list(stock_list)
+            # clause_df = pd.DataFrame(columns=['pdfID', 'original_content', 'modified_content', 'category'])
+            # clause_df = spider.extract_pdf_table_info("downloads/000050_深天马Ａ/20220622_深天马Ａ：《公司章程》修订对照表.pdf",  100000, clause_df)
+            # basic_info = spider.test_pdf_table("downloads/000026_飞亚达/20211112_飞亚达：《公司章程》修订案.pdf")
+            # import pdb
+            # pdb.set_trace()
         else:
             print("未能从Excel文件中读取到有效的股票代码")
     else:
@@ -754,7 +882,7 @@ def main():
         print(f"使用默认股票代码: {stock_list}")
         spider.process_stock_list(stock_list)
         # clause_df = pd.DataFrame(columns=['pdfID', 'original_content', 'modified_content', 'category'])
-        # clause_df = spider.extract_pdf_table_info("downloads/000009_中国宝安/20020528_深宝安Ａ：修改公司章程的预案等.pdf",  100000, clause_df)
+        # clause_df = spider.extract_pdf_table_info("downloads/000002_万 科Ａ/20060320_G 万科Ａ：修改公司章程的议案.pdf",  100000, clause_df)
         # import pdb
         # pdb.set_trace()
        
