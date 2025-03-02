@@ -1,3 +1,4 @@
+# 1. 筛选处理组及投诉内容
 ## filter_treat.py
 * 提取（同程艺龙、携程、美团、马蜂窝、去哪儿网）处理组企业（处理组列表.xlsx）的投诉内容travel_complaints.csv
 * mt_qn.py:其中美团、去哪儿网他们不同的业务投诉对象相同，需要进一步剔除得到meituan_quna.csv
@@ -9,15 +10,27 @@
 * final_treat.py:最后筛选出处理组treat.csv
 * :补充提取时间列treat_with_time.csv
 
+# 2. 筛选出对照组的内容
+<!-- 根据投诉内容的文本相似度 -->
 ## sample_similarity.py
 * ori_docu_process.py:为了提升运算的效率，需要处理原始文件，提取需要的列生成新的文件夹（删除2024年）
-* random_filter.py:随机抽取处理组投诉内容作为相似度匹配的样本部treatment_sample.csv
+* random_filter.py:随机抽取处理组投诉内容作为相似度匹配的样本treatment_sample.csv
 * sample_similarity.py:根据上面获得的样本通过文本相似度（余弦相似度）sample_similarity_count.xlsx
+
 ## 一个可能的解决方式是先把原始文件按照投诉对象分类整合再算相似度 ##
-#### 根据名称筛选投诉对象
+ <!-- 根据商家名称筛选-->
 * words_delete.py:出来的结果非常混杂，根据名称特征做一个剔除
 * object_delete.py:针对投诉对象列表
 * doublecheck.py:针对筛选出来的结果再筛选一遍
+
+
+# 3.根据文本内容进行分类
+<!-- 根据投诉内容的文本相似度 -->
+## sample_similarity.py
+* random_filter.py:随机抽取1000条文本treatment_sample.csv，用于样本分类
+* deepseek_api.py:使用大语言模型对sample中的文本进行分类
+* sample_classfy.py:根据模型输出的结果获取最后判定列如“是否与退改相关”输出“是”或“否”
+
 # 要做的
 * 政策前后投诉量有没有明显的变化
 * 需要识别的文本类型
