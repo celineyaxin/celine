@@ -37,7 +37,7 @@ def chinese_to_arabic_num(chinese_num):
     temp = 0
     for char in chinese_num:
         if char in num_map:
-            if num_map[char] == 10:
+            if num_map[char] == 10 and len(chinese_num)>1:              
                 result += temp * 10
                 temp = 0
             else:
@@ -79,34 +79,50 @@ class GetTime:
             'board_meeting_date': None,  # 董事会议案公告日期
             'shareholders_meeting_date': None,  # 股东大会决议公告日期
         }
+        # 任意字符数量
+        # board_patterns = [
+        #     r'董事会.*?(\d{4}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日)',
+        #     r'(\d{4}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日).*?董事会',
+        #     r'董事会.*?([一二三四五六七八九十○〇零一二三四五六七八九十]+\s*年\s*[一二三四五六七八九十○〇零一二三四五六七八九十]+\s*月\s*[一二三四五六七八九十○〇零一二三四五六七八九十]+\s*日)'
+        # ]
+        
         board_patterns = [
-            r'董事会.*?(\d{4}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日)',
-            r'(\d{4}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日).*?董事会',
-            r'董事会.*?([一二三四五六七八九十○〇零一二三四五六七八九十]+\s*年\s*[一二三四五六七八九十○〇零一二三四五六七八九十]+\s*月\s*[一二三四五六七八九十○〇零一二三四五六七八九十]+\s*日)'
+            r'董事会.{0,100}(\d{4}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日)',
+            r'(\d{4}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日).{0,100}董事会',
+            r'董事会.{0,100}(([一二三四五六七八九十○〇零一二三四五六七八九十]{4})\s*年\s*([一二三四五六七八九十○〇零一二三四五六七八九十]{1,2})\s*月\s*[一二三四五六七八九十○〇零一二三四五六七八九十]+\s*日)'
         ]
+       
         for pattern in board_patterns:
             matches = re.finditer(pattern, text, re.IGNORECASE | re.DOTALL)
             for match in matches:
                 date_str = match.group(1)
                 formatted_date = self.format_date(date_str)
+
                 if formatted_date:
                     info['board_meeting_date'] = formatted_date
                     break
             if info['board_meeting_date']:
                 break
 
+        # shareholders_patterns = [
+        #     r'(\d{4})\s*年\s*年度股东大会',
+        #     r'(\d{4})\s*年\s*.*?股东大会\s*.*?审议',
+        #     r'(\d{4})\s*年度股东大会',
+        #     r'(\d{4})\s*年\s*股东大会',
+        #     r'(\d{4})\s*股东大会'
+        # ]
         shareholders_patterns = [
-            r'(\d{4})\s*年\s*年度股东大会',
-            r'(\d{4})\s*年\s*.*?股东大会\s*.*?审议',
-            r'(\d{4})\s*年度股东大会',
-            r'(\d{4})\s*年\s*股东大会',
-            r'(\d{4})\s*股东大会'
+            r'(\d{4})\s*.{0,100}年度股东大会',
+            r'(\d{4})\s*年\s*.{0,100}股东大会',  
+            r'([一二三四五六七八九十○〇零]{4})\s*.{0,100}年度股东大会',
+            r'([一二三四五六七八九十○〇零]{4})\s*年\s*.{0,100}股东大会'
         ]
-
+        
         for pattern in shareholders_patterns:
             match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
             if match:
                 year = match.group(1)
+                year = chinese_to_arabic_num(year)
                 info['shareholders_meeting_date'] = year
                 break
 
@@ -117,12 +133,13 @@ class GetTime:
         input_df = pd.read_excel(input_name)
         
         # 创建一个新的DataFrame来存储扩展后的数据
-        existing_df = pd.DataFrame(columns=['pdfID', 'filenames', 'stocks', 'board_meeting_data', 'shareholders_meeting_data', 'pdf_link'])
+        existing_df = pd.DataFrame(columns=['pdfID', 'filenames', 'stocks', 'public_date', 'board_meeting_data', 'shareholders_meeting_data', 'pdf_link'])
         
         # 使用tqdm显示进度条
         for idx, row in tqdm(input_df.iterrows(), total=input_df.shape[0]):
             pdf_path = row['filenames']
             stock = str(row['stocks']).zfill(6)
+            public_date = row['public_date']
             pdf_link = row['pdf_link']
             if not utils.contains_revision(pdf_path):
                 print(f"skip this file: {pdf_path}")
@@ -141,6 +158,7 @@ class GetTime:
                     existing_df.at[idx, 'pdfID'] = row['pdfID']
                     existing_df.at[idx, 'filenames'] = pdf_path
                     existing_df.at[idx, 'stocks'] = stock
+                    existing_df.at[idx, 'public_date'] = public_date 
                     existing_df.at[idx, 'pdf_link'] = pdf_link
                     existing_df.at[idx, 'board_meeting_data'] = basic_info['board_meeting_date']
                     existing_df.at[idx, 'shareholders_meeting_data'] = basic_info['shareholders_meeting_date']
@@ -151,7 +169,7 @@ class GetTime:
         # 每5个数据保存一次并清空existing_df
             if (idx + 1) % 50 == 0:
                 utils.append_to_excel(existing_df, output_name)
-                existing_df = pd.DataFrame(columns=['pdfID', 'filenames', 'stocks', 'board_meeting_data', 'shareholders_meeting_data', 'pdf_link'])
+                existing_df = pd.DataFrame(columns=['pdfID', 'filenames', 'stocks', 'public_date','board_meeting_data', 'shareholders_meeting_data', 'pdf_link'])
         
         # 保存剩余的数据
         if not existing_df.empty:

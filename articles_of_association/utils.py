@@ -10,6 +10,14 @@ def ensure_file_exists(excel_path):
     else:
         print(f"文件存在：{excel_path}")
 
+def ensure_csv_exists(csv_path):
+    if not os.path.exists(csv_path):
+        print(f"文件不存在：{csv_path}，将创建一个空的csv文件。")
+        df = pd.DataFrame()  # 创建一个空的DataFrame
+        df.to_csv(csv_path, index=False)  # 保存为空的csv文件
+    else:
+        print(f"文件存在：{csv_path}")
+
 def remove_file(file_path):
     # 检查文件是否存在
     if os.path.exists(file_path):
@@ -18,6 +26,7 @@ def remove_file(file_path):
         print(f"文件已删除：{file_path}")
     else:
         print(f"文件不存在：{file_path}")
+
 
 def append_to_excel(df, excel_path, sheet_name='Sheet1'):
     """
@@ -45,6 +54,21 @@ def append_to_excel(df, excel_path, sheet_name='Sheet1'):
         
         df.to_excel(writer, sheet_name=sheet_name, index=False, header=header_value, startrow=startrow_value)
     print(f"\n数据已追加到文件: {excel_path}")
+
+def append_to_csv(df, csv_path):
+    """
+    将DataFrame追加到csv文件中。
+    
+    :param df: 要追加的DataFrame
+    :param excel_path: csv文件路径
+    """
+    file_exists = os.path.exists(csv_path)
+    if not file_exists:
+        df.to_csv(csv_path, mode='w', index=False, header=True, encoding='utf-8-sig')
+    else:
+        df.to_csv(csv_path, mode='a', index=False, header=False, encoding='utf-8-sig')
+    
+    print(f"\n数据已追加到文件: {csv_path}")
 
 def read_items_from_excel(excel_path, code_column='Symbol'):
     """从Excel文件中读取股票代码列表"""

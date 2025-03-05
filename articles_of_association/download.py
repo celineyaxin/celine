@@ -14,7 +14,6 @@ import html
 import urllib3
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
-import datetime
 import pytz
 import tabula
 import utils
@@ -111,15 +110,16 @@ class CninfoSpider:
             # 提取公告信息
             title = self.clean_filename(announcement['announcementTitle'])
             date = announcement['announcementTime']
-            # date_str = datetime.fromtimestamp(date / 1000).strftime('%Y%m%d')
-            # 将毫秒转换为秒
-            date_in_seconds = date / 1000
+            date_str = datetime.fromtimestamp(date / 1000).strftime('%Y-%m-%d')
+            self.date=date_str
+            # # 将毫秒转换为秒
+            # date_in_seconds = date / 1000
 
-            # 使用时区感知的对象转换为 UTC 时间
-            utc_date = datetime.datetime.fromtimestamp(date_in_seconds, datetime.UTC)
+            # # 使用时区感知的对象转换为 UTC 时间
+            # utc_date = datetime.datetime.fromtimestamp(date_in_seconds, datetime.UTC)
 
             # 格式化为 YYYYMMDD 格式的字符串
-            date_str = utc_date.strftime('%Y%m%d')
+            # date_str = utc_date.strftime('%Y%m%d')
             secCode = announcement['secCode']
             secName = self.clean_filename(announcement['secName'])
             adjunctUrl = announcement['adjunctUrl']
@@ -150,7 +150,7 @@ class CninfoSpider:
     def process_stock_list(self, stock_list, excel_path):
         """处理股票列表"""
         utils.ensure_file_exists(excel_path)
-        existing_df = pd.DataFrame(columns=['pdfID','filenames', 'stocks', 'pdf_link'])
+        existing_df = pd.DataFrame(columns=['pdfID','filenames', 'stocks', 'pdf_link','public_date'])
         stock_idx = 0
         idx = 0
 
@@ -183,7 +183,7 @@ class CninfoSpider:
                                 existing_df.at[idx, 'filenames'] = pdf_path
                                 existing_df.at[idx, 'stocks'] = stock
                                 existing_df.at[idx, 'pdf_link'] = self.download_url + announcement['adjunctUrl']
-
+                                existing_df.at[idx, 'public_date'] = self.date
                                 time.sleep(1)  # 避免请求过快
                         except Exception as e:
                             print(f"处理PDF出错: {e}")
@@ -192,7 +192,7 @@ class CninfoSpider:
             # 每50个公告处理后写入文件并清空 DataFrame
             if stock_idx % 50 == 0 and stock_idx > 0:
                 utils.append_to_excel(existing_df, excel_path)
-                existing_df = pd.DataFrame(columns=['pdfID', 'filenames', 'stocks', 'pdf_link'])
+                existing_df = pd.DataFrame(columns=['pdfID', 'filenames', 'stocks', 'pdf_link','public_date'])
         
         # 最后一次保存剩余的数据
         if not existing_df.empty:
@@ -210,7 +210,7 @@ def main():
     utils.ensure_file_exists(result_full_path)
     if os.path.exists(excel_path):
         stock_list = utils.read_items_from_excel(excel_path, code_column='Symbol')
-        stock_list = stock_list
+        stock_list = stock_list[:50]
         if stock_list:
             spider.process_stock_list(stock_list, result_full_path)
         else:

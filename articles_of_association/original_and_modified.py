@@ -107,7 +107,7 @@ class Clause:
         self.category_keywords = {
             '公司基本信息变更': [
                 '注册资本', '经营范围', '经营宗旨', '公司名称',
-                '公司住所', '法人代表', '营业执照', '办公地址'
+                '公司住所', '法人代表', '营业执照', '办公地址','注册地址'
             ],
             '涉及中小投资者保护的相关条例': [
                 '中小投资者', '表决权', '投票权', '利润分配',
@@ -176,7 +176,10 @@ class Clause:
                 # 如果有未处理的条款，先保存
                 if (current_original != "" and current_modified == "") or (len(current_modified) >= self.lenMax) :
                     # 对内容进行分类
-                    category = self.classify_article_content(current_modified or current_original)
+                    if current_modified != "":
+                        category = self.classify_article_content(current_modified)
+                    else:
+                        category = ""
                     new_row = {
                         'pdfID': pdfID,
                         'original_content': current_original,
@@ -218,7 +221,10 @@ class Clause:
                 # 如果有未处理的条款，先保存
                 if (current_original != "" and current_modified == "") or (len(current_modified) >= self.lenMax) :
                     # 对内容进行分类
-                    category = self.classify_article_content(current_modified or current_original)
+                    if current_modified != "":
+                        category = self.classify_article_content(current_modified)
+                    else:
+                        category = ""
                     new_row = {
                         'pdfID': pdfID,
                         'original_content': current_original,
@@ -250,7 +256,10 @@ class Clause:
 
         # 处理最后一个条款
         if current_original != "" or current_modified != "":
-            category = self.classify_article_content(current_modified or current_original)
+            if current_modified != "":
+                category = self.classify_article_content(current_modified)
+            else:
+                category = ""
             new_row = {
                         'pdfID': pdfID,
                         'original_content': current_original,
@@ -420,7 +429,10 @@ class Clause:
                                 if length_without_parentheses(current_modified) < self.lenMax and length_without_parentheses(current_modified) > 0:
                                     continue
                             # 对内容进行分类
-                            category = self.classify_article_content(current_modified or current_original)
+                            if current_modified != "":
+                                category = self.classify_article_content(current_modified)
+                            else:
+                                category = ""
                             new_row = {
                                 'pdfID': pdfID,
                                 'original_content': current_original,
@@ -468,24 +480,20 @@ class Clause:
                 continue
         # 每50个数据保存一次并清空clause_df
             if (idx + 1) % 50 == 0:
-                utils.append_to_excel(clause_df, output_name)
+                utils.append_to_csv(clause_df, output_name)
                 clause_df = pd.DataFrame(columns=['pdfID', 'original_content', 'modified_content', 'category'])
         
         # 保存剩余的数据
         if not clause_df.empty:
-            utils.append_to_excel(clause_df, output_name)
+            utils.append_to_csv(clause_df, output_name)
         
 
 if __name__ == "__main__":
     get_clause = Clause()
     input_file_name = 'announcement_pdf_list.xlsx'
     input_full_path = os.path.join(get_clause.results_dir, input_file_name)
-    output_file_name = 'announcement_list_with_concrete_clause.xlsx'
+    output_file_name = 'announcement_list_with_concrete_clause.csv'
     output_full_path = os.path.join(get_clause.results_dir, output_file_name)
     utils.remove_file(output_full_path)
-    utils.ensure_file_exists(output_full_path)
+    utils.ensure_csv_exists(output_full_path)
     get_clause.process(input_full_path, output_full_path)
-    # clause_df = pd.DataFrame(columns=['pdfID', 'original_content', 'modified_content', 'category'])
-    # clause_df = get_clause.extract_pdf_table_info("downloads/000089_深圳机场/20201029_深圳机场：《深圳市机场股份有限公司章程》修正案.pdf",  100000, clause_df)
-    # import pdb
-    # pdb.set_trace()
