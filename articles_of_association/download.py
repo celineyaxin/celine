@@ -203,14 +203,14 @@ def main():
     spider = CninfoSpider()
 
     # 从Excel文件读取股票代码
-    excel_path = 'test_stkcd.xlsx'  # Excel文件路径
+    excel_path = '股票代码.xlsx'  # Excel文件路径
     result_file_name = 'announcement_pdf_list.xlsx'
     result_full_path = os.path.join(spider.results_dir, result_file_name)
     utils.remove_file(result_full_path)
     utils.ensure_file_exists(result_full_path)
     if os.path.exists(excel_path):
         stock_list = utils.read_items_from_excel(excel_path, code_column='Symbol')
-        stock_list = stock_list[:50]
+        # stock_list = stock_list[:50]
         if stock_list:
             spider.process_stock_list(stock_list, result_full_path)
         else:
