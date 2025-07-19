@@ -6,3 +6,6 @@
 
 ## 绿色新闻数据
 * random_filter.py:提取样本做标记
+
+## fakenew_classify.py
+* 复合一下虚假消息分类的效果
