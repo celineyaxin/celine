@@ -1,7 +1,7 @@
 import pandas as pd
 import re
 
-csv_file = '/Users/chenyaxin/Desktop/催收/classify_result.csv'
+csv_file = '/Users/chenyaxin/Desktop/隐私保护/分类数据处理/classify_result_double.csv'
 # 加载CSV文件
 df = pd.read_csv(csv_file)
 def split_model_output(output):
@@ -20,7 +20,7 @@ def split_model_output(output):
     return decision, reason
 
 # 应用拆分函数
-df['是否与催收相关'], df['模型输出_理由'] = zip(*df['模型输出'].apply(split_model_output))
+df['是否与催收相关_R1'], df['模型输出_理由_R1'] = zip(*df['模型输出_R1'].apply(split_model_output))
 
 df.to_csv(csv_file, index=False, encoding='utf-8-sig')
 
