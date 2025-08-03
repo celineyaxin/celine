@@ -9,7 +9,7 @@ train_file = '/Users/chenyaxin/Desktop/train.csv'  # 输出的 CSV 文件路径
 # 读取 Excel 文件
 df = pd.read_excel(input_file)
 
-df = df[['投诉内容', '是否隐私依赖']]
+df = df[['投诉内容', '分类']]
 
 df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 

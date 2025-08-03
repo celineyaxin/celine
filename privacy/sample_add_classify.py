@@ -7,7 +7,7 @@ import re
 client = OpenAI(api_key="sk-dfxeyyujyasffouikqtgywrraabhoxirlyojqjbowynvnlfc", base_url="https://api.siliconflow.cn/v1")
 
 # 输入和输出文件路径
-excel_file = './supplement_fraud_sample_3000.xlsx'
+excel_file = '/Users/chenyaxin/Desktop/supplement_fraud_sample_3000.xlsx'
 output_file = '/Users/chenyaxin/Desktop/add_sample.xlsx'
 # 读取 CSV 文件
 df = pd.read_excel(excel_file)
