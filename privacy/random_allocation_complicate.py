@@ -3,7 +3,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 
 # 定义文件路径
-input_file = '/Users/chenyaxin/Desktop/privacy/分类数据处理/fraud_classify/子分类_2.xlsx'
+input_file = '/Users/chenyaxin/Desktop/子分类_3.xlsx'
 test_file = '/Users/chenyaxin/Desktop/test.csv'
 dev_file = '/Users/chenyaxin/Desktop/dev.csv'
 train_file = '/Users/chenyaxin/Desktop/train.csv'
@@ -37,7 +37,7 @@ print(adjusted_counts)
 # 第一次分层抽样：分出测试集 (500条)
 train_dev_df, test_df = train_test_split(
     df, 
-    test_size=1000, 
+    test_size=500, 
     stratify=df['adjusted_class'],
     random_state=42
 )
@@ -45,7 +45,7 @@ train_dev_df, test_df = train_test_split(
 # 第二次分层抽样：从剩余数据中分出开发集 (500条)
 train_df, dev_df = train_test_split(
     train_dev_df, 
-    test_size=1000, 
+    test_size=500, 
     stratify=train_dev_df['adjusted_class'],
     random_state=42
 )

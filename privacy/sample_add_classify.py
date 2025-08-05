@@ -4,11 +4,15 @@ from tqdm import tqdm
 import re
 
 # 初始化 OpenAI 客户端
-client = OpenAI(api_key="sk-dfxeyyujyasffouikqtgywrraabhoxirlyojqjbowynvnlfc", base_url="https://api.siliconflow.cn/v1")
+# client = OpenAI(api_key="sk-dfxeyyujyasffouikqtgywrraabhoxirlyojqjbowynvnlfc", base_url="https://api.siliconflow.cn/v1")
+client = OpenAI(api_key="sk-yyxiyzecigbawpjbazgtsvjmvddgymezvclcbwuslrsmogol", base_url="https://api.siliconflow.cn/v1")
+
 
 # 输入和输出文件路径
 excel_file = '/Users/chenyaxin/Desktop/supplement_fraud_sample_3000.xlsx'
-output_file = '/Users/chenyaxin/Desktop/add_sample.xlsx'
+# output_file = '/Users/chenyaxin/Desktop/add_sample.xlsx'
+output_file = '/Users/chenyaxin/Desktop/add_sample_dp.xlsx'
+
 # 读取 CSV 文件
 df = pd.read_excel(excel_file)
 
@@ -46,7 +50,9 @@ classification_criteria = """
 def classify_complaint(content):
     try:
         response = client.chat.completions.create(
-            model="Qwen/Qwen3-32B",
+            model="deepseek-ai/DeepSeek-V3",
+            # Pro/deepseek-ai/DeepSeek-V3
+            # Qwen/Qwen3-32B
             messages=[
                 {
                     "role": "system",
