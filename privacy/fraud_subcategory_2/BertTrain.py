@@ -42,7 +42,6 @@ class NewsClassifier:
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.tokenizer = BertTokenizer.from_pretrained(self.model_path)
         self.labels = self._load_labels()
-        print(f"加载的类别数量: {len(self.labels)}")
         self.model = None
         self.criterion = None
         self.optimizer = None
@@ -52,13 +51,10 @@ class NewsClassifier:
         self.setup_seed()
         self.model = BertClassifier(self.labels, self.model_path).to(self.device)
 
-        # train_df = self.load_data(self.data_paths['train'], 200)
-        # dev_df = self.load_data(self.data_paths['dev'], 100)
         train_df = self.load_data(self.data_paths['train'])
         dev_df = self.load_data(self.data_paths['dev'])
         self.train_dataset = self.create_dataset(train_df)
         self.dev_dataset = self.create_dataset(dev_df)
-        # plot_text_length_distribution(train_df)
 
     def _load_labels(self):
         with open(self.label_path, 'r') as f:
@@ -79,47 +75,21 @@ class NewsClassifier:
         df = df.dropna(subset=["label"])
         df["text"] = df["text"].astype(object)
         df["label"] = df["label"].astype('int64')
-
-        min_label = df['label'].min()
-        max_label = df['label'].max()
-        num_classes = len(self.labels)
-        print(f"数据集: {os.path.basename(path)} - 最小标签: {min_label}, 最大标签: {max_label}, 类别数: {num_classes}")
-        if min_label < 0 or max_label >= num_classes:
-            if min_label == 1 and max_label == num_classes:
-                print(f"检测到标签从1开始，自动调整为0-based索引")
-                df['label'] = df['label'] - 1
-            else:
-                raise ValueError(f"标签范围错误! 应在[0, {num_classes-1}]范围内, 实际[{min_label}, {max_label}]")
+        # print(df.dtypes)
         return df
-    
+
     def create_dataset(self, df):
-        unique_labels = df['label'].unique()
-        print(f"唯一标签值: {np.sort(unique_labels)}")
-        
-        texts = [self.tokenizer(
-            str(text),  
-            padding='max_length',
-            max_length=512,  
-            truncation=True,
-            return_tensors="pt"
-        ) for text in df["text"]]
-        
+        texts = [self.tokenizer(text, padding='max_length', max_length=512, truncation=True, return_tensors="pt") for text in df["text"]]
         labels = df['label'].values
         return MyDataset(texts, labels)
-    
+
     def train(self, epochs, batch_size, lr):
         train_loader = DataLoader(self.train_dataset, batch_size=batch_size, shuffle=True)
         dev_loader = DataLoader(self.dev_dataset, batch_size=batch_size)
 
         self.criterion = nn.CrossEntropyLoss().to(self.device)
-        # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
-        
-        self.optimizer = torch.optim.Adam(
-        self.model.parameters(), 
-        lr=lr,
-        weight_decay=1e-4  
-        )
-    
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
+
         best_dev_acc = 0
         for epoch in range(epochs):
             print("Epoch = ", epoch + 1)
@@ -176,7 +146,7 @@ class NewsClassifier:
     def evaluate(self, test_df):
         self.model.eval()
         test_dataset = self.create_dataset(test_df)
-        test_loader = DataLoader(test_dataset, batch_size=1)
+        test_loader = DataLoader(test_dataset, batch_size=32)
         total_acc = 0
         with torch.no_grad():
             for inputs, labels in test_loader:
@@ -198,7 +168,28 @@ class NewsClassifier:
             outputs = self.model(input_ids.squeeze(1), attention_mask)
         pred = self.labels[outputs.argmax(dim=1).item()]
         return pred
+    def get_misclassified_samples(self, df):
+        self.model.eval()
+        dataset = self.create_dataset(df)
+        data_loader = DataLoader(dataset, batch_size=32)
+        misclassified_samples = []
 
+        with torch.no_grad():
+            for inputs, labels in data_loader:
+                input_ids = inputs['input_ids'].squeeze(1).to(self.device)
+                attention_mask = inputs['attention_mask'].to(self.device)
+                labels = labels.to(self.device)
+                outputs = self.model(input_ids, attention_mask)
+                _, predicted = torch.max(outputs, 1)
+                misclassified_indices = (predicted != labels).nonzero(as_tuple=True)[0]
+                for idx in misclassified_indices:
+                    misclassified_samples.append({
+                        'text': df.iloc[idx]['text'],
+                        'true_label': df.iloc[idx]['label'],
+                        'predicted_label': predicted[idx].item()
+                    })
+        
+        return misclassified_samples
 class MyDataset(Dataset):
     def __init__(self, texts, labels):
         self.texts = texts
@@ -214,17 +205,18 @@ class BertClassifier(nn.Module):
     def __init__(self, labels, model_path):
         super(BertClassifier, self).__init__()
         self.bert = BertModel.from_pretrained(model_path)
-        self.dropout = nn.Dropout(0.65)
-        num_classes = len(labels)
-        self.linear = nn.Linear(self.bert.config.hidden_size, num_classes)
-
+        self.dropout = nn.Dropout(0.5)
+        # 确保输出层的大小与标签的数量相匹配
+        self.linear = nn.Linear(self.bert.config.hidden_size, len(labels))
+        self.relu = nn.ReLU()
 
     def forward(self, input_id, mask):
         outputs = self.bert(input_ids=input_id, attention_mask=mask, return_dict=False)
         pooled_output = outputs[1]
         dropout_output = self.dropout(pooled_output)
         linear_output = self.linear(dropout_output)
-        return linear_output
+        final_output = self.relu(linear_output)
+        return final_output
 
 if __name__ == "__main__":
 
@@ -234,10 +226,25 @@ if __name__ == "__main__":
         'test': './test.csv'
     }
     news_classifier = NewsClassifier(data_paths = data_paths, label_path = './class.txt', model_path = './chinese_L-12_H-768_A-12', save_path = './model')
-    news_classifier.train(epochs=10, batch_size=32, lr=1e-5)
+    news_classifier.train(epochs=10, batch_size=32, lr=5e-5)
+    # news_classifier.train(epochs=10, batch_size=64, lr=1e-5)
+    # 评估测试集
+    # test_df = news_classifier.load_data(data_paths['test'], 100)
     test_df = news_classifier.load_data(data_paths['test'])
     news_classifier.model.load_state_dict(torch.load(os.path.join(news_classifier.save_path, 'best_model.pt')))
     news_classifier.evaluate(test_df)
+
+    dev_df = news_classifier.load_data(data_paths['dev'])
+    misclassified_dev_samples = news_classifier.get_misclassified_samples(dev_df)
+    misclassified_dev_df = pd.DataFrame(misclassified_dev_samples)
+    misclassified_dev_df.to_csv('./misclassified_dev_samples.csv', index=False, encoding='utf-8-sig')
+    print("验证集中的错误标记样本已保存到 './misclassified_dev_samples.csv'")
+
+    test_df = news_classifier.load_data(data_paths['test'])
+    misclassified_test_samples = news_classifier.get_misclassified_samples(test_df)
+    misclassified_test_df = pd.DataFrame(misclassified_test_samples)
+    misclassified_test_df.to_csv('./misclassified_test_samples.csv', index=False, encoding='utf-8-sig')
+    print("测试集中的错误标记样本已保存到 './misclassified_test_samples.csv'")
 
     # 预测
     while True:
