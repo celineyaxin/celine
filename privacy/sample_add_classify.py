@@ -9,7 +9,7 @@ client = OpenAI(api_key="sk-yyxiyzecigbawpjbazgtsvjmvddgymezvclcbwuslrsmogol", b
 
 
 # 输入和输出文件路径
-excel_file = '/Users/chenyaxin/Desktop/supplement_fraud_sample_3000.xlsx'
+excel_file = '/Users/chenyaxin/Desktop/fraud_sample_5000.xlsx'
 # output_file = '/Users/chenyaxin/Desktop/add_sample.xlsx'
 output_file = '/Users/chenyaxin/Desktop/add_sample_dp.xlsx'
 
@@ -168,7 +168,8 @@ chunk_size = 50  # 每 50 条写入一次
 for start in tqdm(range(0, len(df), chunk_size), desc="Processing"):
     end = start + chunk_size
     chunk = df.iloc[start:end].copy()
-    for idx in range(start, min(end, len(df))):
+    # for idx in range(start, min(end, len(df))):
+    for idx in tqdm(range(start, min(end, len(df))), desc=f"Processing chunk {start}-{min(end, len(df))}"):
         content = df.at[idx, "投诉内容"]
         output = classify_complaint(content)
         result = split_model_output(output)

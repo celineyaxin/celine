@@ -1,15 +1,16 @@
+# -*- coding: utf-8 -*-
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import numpy as np
 
-input_file = '/Users/chenyaxin/Desktop/子分类_3.xlsx'
+input_file = '/Users/chenyaxin/Desktop/privacy/分类数据处理/fraud_classify/母分类_2.xlsx'
 test_file = '/Users/chenyaxin/Desktop/test.csv'
 dev_file = '/Users/chenyaxin/Desktop/dev.csv'
 train_file = '/Users/chenyaxin/Desktop/train.csv'
 
 # 读取Excel文件
 df = pd.read_excel(input_file)
-df = df[['投诉内容', '子分类']]
+df = df[['投诉内容', '子分类', '类别']]  # 保留所有三列
 
 # 1. 合并稀有类别（样本数少于3的类别）
 min_samples = 3
@@ -84,9 +85,9 @@ dev_df = ensure_category_coverage(dev_df, "开发", all_adjusted_classes)
 train_df = ensure_category_coverage(train_df, "训练", all_adjusted_classes)
 
 # 5. 保存结果（使用调整后的类别）
-test_df[['投诉内容', 'adjusted_class']].to_csv(test_file, index=False, header=False)
-dev_df[['投诉内容', 'adjusted_class']].to_csv(dev_file, index=False, header=False)
-train_df[['投诉内容', 'adjusted_class']].to_csv(train_file, index=False, header=False)
+test_df[['投诉内容', '类别']].to_csv(test_file, index=False, header=False)
+dev_df[['投诉内容', '类别']].to_csv(dev_file, index=False, header=False)
+train_df[['投诉内容', '类别']].to_csv(train_file, index=False, header=False)
 
 # 6. 详细检查各类别分布
 def check_coverage(df_set, set_name):

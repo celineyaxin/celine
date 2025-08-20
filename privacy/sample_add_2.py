@@ -8,13 +8,15 @@ fraud_df = pd.read_csv('/Users/chenyaxin/Desktop/privacy/data/fraud_predictions_
 fraud_df = fraud_df[fraud_df['prediction'] == 1].copy()
 
 # 2. 读取合并结果并提取投诉编号
-merged_df = pd.read_excel('/Users/chenyaxin/Desktop/合并结果.xlsx')
+merged_df_1 = pd.read_excel('/Users/chenyaxin/Desktop/合并结果.xlsx')
+merged_df_2 = pd.read_excel('/Users/chenyaxin/Desktop/supplement_fraud_sample_3000.xlsx')
+
+merged_df = pd.concat([merged_df_1, merged_df_2], ignore_index=True)
 merged_complaint_ids = merged_df['投诉编号'].tolist()
 print(f"合并结果中的投诉编号数量: {len(merged_complaint_ids)}")
 
 # 3. 筛选匹配的欺诈投诉
 matched_fraud = fraud_df[fraud_df['投诉编号'].isin(merged_complaint_ids)].copy()
-matched_fraud = matched_fraud.drop_duplicates(subset=['投诉编号'], keep='first') 
 print("\n=== 匹配结果验证 ===")
 print(f"匹配到的欺诈投诉数量: {len(matched_fraud)}")
 
@@ -88,7 +90,7 @@ def stratified_sample(df, strata_columns, sample_size):
     return pd.concat(samples) if samples else pd.DataFrame()
 
 # 8. 执行分层抽样
-target_sample_size = 3000
+target_sample_size = 5000
 supplement_sample = stratified_sample(
     unmatched_fraud,
     strata_columns=['年份', '投诉商家'],
@@ -108,7 +110,7 @@ print("\n商家分类分布:")
 print(supplement_sample['投诉商家'].value_counts())
 
 # 10. 保存结果
-output_path = '/Users/chenyaxin/Desktop/privacy/分类数据处理/supplement_fraud_sample_3000.csv'
+output_path = '/Users/chenyaxin/Desktop/privacy/分类数据处理/supplement_fraud_sample_5000_2.csv'
 supplement_sample.to_csv(output_path, index=False)
 print(f"\n补充样本已保存至: {output_path}")
 

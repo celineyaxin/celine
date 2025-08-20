@@ -1,24 +1,25 @@
 from openai import OpenAI
 import pandas as pd
-from tqdm import tqdm
+from tqdm import tqdm, trange
 import re
 
 # 初始化 OpenAI 客户端
 client = OpenAI(api_key="sk-dfxeyyujyasffouikqtgywrraabhoxirlyojqjbowynvnlfc", base_url="https://api.siliconflow.cn/v1")
 
 # 输入和输出文件路径
-excel_file = '/Users/chenyaxin/Desktop/合并结果_更新.xlsx'
-output_file = '/Users/chenyaxin/Desktop/合并结果_更新renew.xlsx'
+excel_file = '/Users/chenyaxin/Desktop/访问错误.xlsx'
+output_file = '/Users/chenyaxin/Desktop/访问错误_2.xlsx'
+# labeled_samples_file = '/Users/chenyaxin/Desktop/auto_sampled_complaints.xlsx' 
 # 读取 CSV 文件
 df = pd.read_excel(excel_file)
-# 11和12之间的问题是11是没想买诱导买了；12是本来就要买但是没兑现
+# labeled_samples = pd.read_excel(labeled_samples_file)
 # 定义分类标准和问题
 classification_criteria = """
 您是一个专业的金融投诉分类助手，请严格按照用户要求进行分类。需要给出类别的序号，并给出你判断的理由（精简）。
 请注意在分类过程中尽量不要出现交叉多个分类，以投诉内容中最主要的欺诈类型所属类别为主：
 [分类标准]
 1. 不依赖个人信息的欺诈
-   11-诱导消费：通过话术或者界面设置诱导消费，不涉及个人信息（套路）
+   11-诱导消费：通过话术诱导消费，不涉及个人信息（套路）
    12-虚假服务：
         121-充值会员欺诈：承诺充值会员可获服务但未兑现
         122-虚假放贷：承诺放贷但未履行
@@ -42,11 +43,25 @@ classification_criteria = """
    03-其他：明显不属于欺诈的投诉
 """
 
+# def build_few_shot_examples(labeled_samples, max_length=100):
+#     examples = []
+#     for _, row in labeled_samples.iterrows():
+#         # 截断长文本并添加省略号
+#         content = row['投诉内容'][:max_length] + ('...' if len(row['投诉内容']) > max_length else '')
+#         examples.extend([
+#             {"role": "user", "content": f"投诉内容：{content}"},
+#             {"role": "assistant", "content": f"**分类序号：**{row['人工标记类别']}"}
+#         ])
+#     return examples[:10]  # 限制最多5组示例（10条消息）
+
+# # 构建预学习示例
+# few_shot_examples = build_few_shot_examples(labeled_samples)
+
 # 分类函数
 def classify_complaint(content):
     try:
         response = client.chat.completions.create(
-            model="Qwen/Qwen3-32B",
+            model="moonshotai/Kimi-K2-Instruct",
             messages=[
                 {
                     "role": "system",
@@ -141,30 +156,6 @@ def split_model_output(output):
     
     return result
 
-# for idx in range(min(5, len(df))):
-#     content = df.at[idx, "投诉内容"]
-#     output = classify_complaint(content)
-#     result = split_model_output(output)
-#     print(f"一位数分类: {result['one_digit']}")
-#     print(f"两位数分类: {result['two_digit']}")
-#     print(f"三位数分类: {result['three_digit']}")
-#     print(f"分类理由: {result['reason']}")
-#     print("-" * 50)
-
-# 根据两位数分类推导一位数分类
-def derive_one_digit_from_two_digit(two_digit_list):
-    one_digit_map = {
-        '11': '1', '12': '1', '13': '1', '14': '1',
-        '21': '2', '22': '2', '23': '2', '24': '2',
-        '31': '3', '32': '3',
-        '01': '0', '02': '0', '03': '0'
-    }
-    one_digit_set = set()
-    for two_digit in two_digit_list:
-        if two_digit in one_digit_map:
-            one_digit_set.add(one_digit_map[two_digit])
-    return list(one_digit_set)
-
 # 设置分块大小
 chunk_size = 50  # 每 50 条写入一次
 
@@ -172,7 +163,8 @@ chunk_size = 50  # 每 50 条写入一次
 for start in tqdm(range(0, len(df), chunk_size), desc="Processing"):
     end = start + chunk_size
     chunk = df.iloc[start:end].copy()
-    for idx in range(start, min(end, len(df))):
+    for idx in trange(start, min(end, len(df)), desc=f"处理分块 {start}-{min(end, len(df))}", leave=False):
+    # for idx in range(start, min(end, len(df))):
         content = df.at[idx, "投诉内容"]
         output = classify_complaint(content)
         result = split_model_output(output)
@@ -183,8 +175,6 @@ for start in tqdm(range(0, len(df), chunk_size), desc="Processing"):
         df.at[idx, "两位数分类"] = ",".join(result["two_digit"])
         df.at[idx, "三位数分类"] = ",".join(result["three_digit"])
         df.at[idx, "分类理由"] = result["reason"]
-        derived_one_digit = derive_one_digit_from_two_digit(result["two_digit"])
-        df.at[idx, "推导一位数分类"] = ",".join(derived_one_digit)
     df.to_excel(output_file, index=False)
 
 print(f"结果已保存到 {output_file}")
