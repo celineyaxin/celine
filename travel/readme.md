@@ -1,25 +1,28 @@
 # 1. 筛选处理组及投诉内容
-## filter_treat.py
+## 1. filter_treat.py
 * 提取（同程艺龙、携程、美团、马蜂窝、去哪儿网）处理组企业（处理组列表.xlsx）的投诉内容travel_complaints.csv
-## mt_qn.py
+* 个别商家数据需要单独处理
+## 2. mt_qn.py
 * 其中美团、去哪儿网他们不同的业务投诉对象相同，需要进一步处理，我们提取这两个商家对应的投诉内容meituan_quna.csv
-## split.py:
+## 3. split.py:
 * 投诉编号切分分组用于后面网站的爬取
-* 根据服务条目爬取
+* 根据服务条目爬取，筛选出美团出行服务/去哪儿出行服务对应的投诉条目
 * 使用服务.otd：到网站批量进一步提取“使用服务”项目筛选出出行服务的部分
-## omitted.py
+
+## 4.omitted.py
 * 有一些没爬取到的编号，做一个筛选，补充爬取
-* 同样把结果添加到文件夹，共77个文件
+* 同样把结果添加到文件夹，共77个文件**业务分类结果（folder）**
 ## which_service.py
 * 根据获得的网页信息筛选出美团商家和去哪商家中去哪出行服务/美团出行服务的投诉编号**extracted_complaints.csv**
-## delete_bike.py:
+
+## 5. delete_bike.py:
 * 美团出行还有一些关于单车方面的投诉
 * 需要删除的单车/充电宝相关的投诉内容 **meituan_delete.csv**
 
 # 2. 筛选出对照组的内容
 <!-- 根据投诉内容的文本相似度识别出对照组企业 -->
-## sample_similarity.py
-* ori_docu_process.py:为了提升运算的效率，需要处理原始文件，提取需要的列生成新的文件夹（删除2024年）
+## 1.sample_similarity.py
+* ori_docu_process.py:为了提升运算的效率，需要处理原始文件，提取需要的列生成新的文件夹（删除2024年）**原始数据处理（folder）**
 * random_filter.py:随机抽取处理组投诉内容作为相似度匹配的样本
 * sample_similarity.py:根据上面获得的样本通过文本相似度（余弦相似度）
 
@@ -30,34 +33,38 @@
 * doublecheck.py:针对筛选出来的结果再筛选一遍
 
 # 3.根据筛选出来对照组构建旅游投诉数据库
-## complaint_object.py
+## 1. complaint_object.py
 * 筛选投诉对象，在全库中搜索商家名称（如果能搜索到就说明商家名称即为投诉对象的名称，如果搜索不到就需要另外获取投诉对象的名称）
 * 一致的直接写入投诉对象列，不一致的手动搜索补全
 
-## object_search.py
+## 2. object_search.py
 * 投诉对象的搜索界面，包含某个关键词的投诉对象名称辅助搜索
 * 对于一些商家虽然没有包含在投诉商家的投诉里，但也是针对这个企业的投诉**投诉对象搜索_携程.csv**
 * 有一些商家的投诉对象数量有很多
 
-## travel_complaint.py
+## 3. travel_complaint.py
 * 通过已经整理提取的投诉对象，在文件夹中提取对应的所有投诉内容
 
-## final_treat.py
+## 4. final_treat.py
 * 美团商家和去哪商家中去哪出行服务/美团出行服务的投诉编号extracted_complaints.csv
 * 需要删除的单车/充电宝相关的投诉内容 meituan_delete.csv
 * 最后筛选出处理组**travel_complaints.csv**
 
 
-# 3.根据文本内容进行分类
+# 4.根据文本内容进行分类
 <!-- 根据投诉内容的文本相似度 -->
-## random_filter.py
+## 1. random_filter.py
 * 随机抽取5000条文本travel_sample.csv，用于样本分类
-## deepseek_api.py:使用大语言模型对sample中的文本进行分类
-## sample_classfy.py:根据模型输出的结果获取最后判定列如“是否与退改相关”输出“是”或“否”
 
+## 2. sample_classfy.py
+* 根据模型输出的结果获取最后判定列如“是否与退改相关”输出“是”或“否”/并给出理由
 
-* 随机抽取投诉内容
-* 用llm识别分类是否是退改相关的投诉
+## 3. sample_add.py
+* 补充获取样本**supplement_travel_sample.csv**，再进行分类
+
+# 做分类处理
+## 1. random_allocation.py
+* 对标记好的内容随机分类
 
 
 # 要做的

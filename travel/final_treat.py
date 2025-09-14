@@ -45,9 +45,48 @@ final_count = len(final_df)
 removed_by_deletion = merged_count - final_count
 print(f"删除指定投诉后最终行数: {final_count:,} (移除了 {removed_by_deletion:,} 条记录)")
 
+gaode_transport_keywords = [
+    "打车", "网约车", "出租车", "快车", "专车", "代驾", "司机", "车主",
+    "一口价", "预估费", "高速费", "附加费", "多收费", "未打表", "返程费", "车费",
+    "派单", "接单", "爽约", "未上车", "未到达", "绕路", "偏离路线", "未按导航",
+    "开车打电话", "超速", "急刹车", "有责取消",
+    "导航错误", "GPS不准", "定位漂移", "播报延迟", "路况更新", "地图数据", "闯红灯", "违章", "电子眼",
+    "判责", "判责不公", "扣分", "封号", "账号处罚", "客服判责", "申诉"
+]
+
+gaode_hotel_protected_keywords = [
+    "酒店", "宾馆", "住宿", "预订", "客房", "入住", "前台", "房费", "房价", "民宿",
+    "房间", "床单", "卫生间", "浴室", "空调", "热水", "Wi-Fi", "宽带",
+    "景区", "门票", "景点", "公园", "博物馆",
+    "办理入住", "确认预订", "无房", "房型不符", "卫生差", "服务态度", "虚假宣传", "设施旧"
+]
+
+def is_gaode_travel_complaint(complaint_text):
+    """
+    优化后的判断函数。
+    返回 True: 是酒旅投诉 (应保留)
+    返回 False: 是非酒旅投诉 (应筛除)
+    """
+    text = complaint_text.strip()
+    has_transport_word = any(keyword in text for keyword in gaode_transport_keywords)
+    has_hotel_word = any(keyword in text for keyword in gaode_hotel_protected_keywords)
+    if has_transport_word and not has_hotel_word:
+        return False
+    return True
+final_df = final_df.copy()
+final_df.loc[:, '发起投诉内容'] = final_df['发起投诉内容'].astype(str)
+final_df.loc[:, '保留'] = final_df['发起投诉内容'].apply(is_gaode_travel_complaint)
+filtered_final_df = final_df[final_df['保留']]
+
+initial_count = len(final_df)
+filtered_count = len(filtered_final_df)
+removed_count = initial_count - filtered_count
+print(f"删除的记录数: {removed_count:,}")
+
+filtered_final_count = len(filtered_final_df)
 # 保存合并后的结果到一个新的 CSV 文件中
 output_filename = '/Users/chenyaxin/Desktop/InternetTourismConvention/travel_complaints.csv'
-final_df.to_csv(output_filename, index=False)
+filtered_final_df.to_csv(output_filename, index=False)
 print(f"合并后的投诉内容已写入 {output_filename}")
 
 print("\n===== 数据处理总结 =====")
@@ -57,5 +96,5 @@ print(f"  筛选后特定投诉对象记录: {filtered_specific_count:,} 条")
 print(f"  其他投诉对象记录: {other_count:,} 条")
 print(f"合并后总记录: {merged_count:,} 条")
 print(f"根据删除列表移除: {removed_by_deletion:,} 条")
-print(f"最终保留记录: {final_count:,} 条")
+print(f"最终保留记录: {filtered_final_count:,} 条")
 print("========================")
