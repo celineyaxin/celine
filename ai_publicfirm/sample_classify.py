@@ -12,9 +12,9 @@ client = OpenAI(
 )
 
 # 读取CSV文件
-input_file = '/Users/chenyaxin/Desktop/非数据分析职位样本.csv'  # 输入文件名，请替换为您的实际文件路径
-output_csv_file = '/Users/chenyaxin/Desktop/recruitment_nokeyword.csv'  # 输出CSV文件名
-output_excel_file = '/Users/chenyaxin/Desktop/recruitment_nokeywordqw.xlsx'  # 输出Excel文件名
+input_file = '/Users/chenyaxin/Desktop/再分类.csv'  # 输入文件名，请替换为您的实际文件路径
+output_csv_file = '/Users/chenyaxin/Desktop/recruitment_keyword_qw.csv'  # 输出CSV文件名
+output_excel_file = '/Users/chenyaxin/Desktop/recruitment_keyword_qw.xlsx'  # 输出Excel文件名
 
 # 读取CSV文件并只保留指定列
 columns_to_keep = ['企业名称', '招聘岗位', '职位描述', '学历要求', '招聘发布日期']
