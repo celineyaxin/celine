@@ -84,15 +84,39 @@
 
 ## 🚀 快速开始
 
-### 安装依赖
+### 方式一：直接使用（推荐，无需安装 Python）
+
+**Windows 用户：**
+1. 下载 `dist/论文格式验证工具.exe`
+2. 双击运行，浏览器会自动打开
+3. 上传论文文档，查看验证结果
+
+**Mac 用户：**
+1. 需要先安装 Python（从 https://www.python.org/downloads/ 下载）
+2. 双击 `start.command` 文件启动
+3. 首次可能需要：右键点击 → 打开 → 确认打开
+4. 浏览器会自动打开验证界面
+
+> 💡 如果有 Mac 用户，可以在 Mac 上运行 `python build_exe.py` 生成 Mac 原生应用
+
+### 方式二：使用 Web UI（需要 Python）
 
 ```bash
+# 安装依赖
 pip install -r requirements.txt
+
+# 启动 Web UI
+python app.py
+
+# 浏览器访问 http://127.0.0.1:5000
 ```
 
-### 运行验证
+### 方式三：命令行模式
 
 ```bash
+# 安装依赖
+pip install -r requirements.txt
+
 # 验证单个文档（运行所有验证器）
 cd validators
 python run_all.py your_thesis.docx
@@ -117,12 +141,25 @@ python v07_toc.py your_thesis.docx
 python v15_three_line_table.py your_thesis.docx
 ```
 
+### 重新打包 EXE（开发者）
+
+```bash
+python build_exe.py
+```
+
 ## 📁 项目结构
 
 ```
 ├── README.md                 # 项目说明
 ├── requirements.txt          # Python依赖
 ├── .gitignore               # Git忽略文件
+├── app.py                   # Web UI 主程序
+├── build_exe.py             # 打包脚本（支持 Windows/Mac）
+├── start.command            # Mac/Linux 启动脚本
+├── templates/               # Web UI 模板
+│   └── index.html           # 主页面
+├── dist/                    # 打包输出目录
+│   └── 论文格式验证工具.exe   # Windows 可执行文件
 └── validators/              # 验证器目录
     ├── run_all.py           # 批量运行所有验证器
     ├── base_validator.py    # 验证器基类
